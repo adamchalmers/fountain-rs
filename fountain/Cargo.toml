@@ -1,7 +1,7 @@
 [package]
 name = "fountain"
-version = "0.1.0"
-authors = ["Adam Chalmers <achalmers@cloudflare.com>"]
+version = "0.1.1"
+authors = ["Adam Chalmers <adam.s.chalmers@gmail.com>"]
 edition = "2018"
 description = "Parser and formatter for the Fountain screenplay markup language"
 homepage = "https://github.com/adamchalmers/fountain-rs"

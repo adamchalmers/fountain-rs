@@ -2,11 +2,7 @@
 A library for parsing [Fountain](http://fountain.io) markup. Fountain is used for screen- or stageplays.
 
 ## Usage
-This repo contains a binary and a library. Use `cargo build` to build the binary, then run it like so:
-```bash
-$ fountain MY_FOUNTAIN_DOC.fountain
-```
-The binary will output HTML to stdout. You can redirect that to a file (to open in a browser) or to a PDF-creating program. My current workflow is to write the output to a file, open the file in Chrome, then print the page into a PDF. There's probably some nifty CLI util that can read HTML from stdin and output a PDF. If you can suggest one, I'll put it here.
+This library parses Fountain markup and can render it into print-friendly HTML. From there, some other program can print it or convert it into a PDF. We use [Nom 5](https://crates.io/crates/nom) for parsing.
 
 ## Progress
 Eventually I would like `fountain-rs` to be fully compliant with the Fountain spec. Only a subset of the spec has currently been implemented. So far metadata (e.g. Title and Author fields) are implemented, as well as these Fountain elements:
