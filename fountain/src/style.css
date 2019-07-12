@@ -1,0 +1,31 @@
+.scene {
+    font-weight: bold;
+    text-align: center;
+}
+
+.dialogue {
+    width: 400px;
+    margin: 0 auto;
+}
+
+.metadata {
+    text-align: center;
+}
+
+.speaker {
+    text-align: center;
+}
+
+.parenthetical {
+    text-align: center;
+    font-style: italic;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+body {
+    font-family: monospace, monospace;
+    max-width: 800px;
+}

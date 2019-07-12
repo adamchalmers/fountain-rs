@@ -1,0 +1,15 @@
+[package]
+name = "fountain"
+version = "0.1.0"
+authors = ["Adam Chalmers <achalmers@cloudflare.com>"]
+edition = "2018"
+description = "Parser and formatter for the Fountain screenplay markup language"
+homepage = "https://github.com/adamchalmers/fountain-rs"
+repository = "https://github.com/adamchalmers/fountain-rs"
+readme = "README.md"
+keywords = ["fountain", "parsing", "markup"]
+categories = ["command-line-utilities", "text-processing"]
+license = "Unlicense OR MIT"
+
+[dependencies]
+nom = "5.0.0"
