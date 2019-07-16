@@ -1,6 +1,9 @@
 # fountain-rs
 A library for parsing [Fountain](http://fountain.io) markup. Fountain is used for screen- or stageplays.
 
+![Fountain's crates.io badge](https://img.shields.io/crates/v/fountain.svg)
+![Fountain's docs.rs badge](https://docs.rs/fountain/badge.svg)
+
 ## Usage
 This repo contains a binary and a library. Use `cargo build` to build the binary, then run it like so:
 ```bash
