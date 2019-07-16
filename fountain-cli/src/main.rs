@@ -1,7 +1,7 @@
 mod error;
 
 use error::FountainError;
-use fountain as lib;
+use fountain;
 use nom::error::ErrorKind;
 use std::env;
 use std::fs::File;
@@ -25,12 +25,12 @@ fn main() -> Result<(), FountainError> {
 fn fountain_to_html(filepath: &str) -> Result<String, FountainError> {
     eprintln!("Reading {}", filepath);
     let text = read(filepath)?;
-    match lib::parse::document::<(&str, ErrorKind)>(&text) {
+    match fountain::parse_document::<(&str, ErrorKind)>(&text) {
         Err(e) => Err(FountainError::ParseError(format!("{:?}", e))),
-        Ok(("", parsed)) => Ok(lib::html::to_html(&parsed)),
+        Ok(("", parsed)) => Ok(parsed.as_html()),
         Ok((unparsed, parsed)) => {
             eprintln!("{}: {}", ERR_UNPARSED, unparsed);
-            Ok(lib::html::to_html(&parsed))
+            Ok(parsed.as_html())
         }
     }
 }

@@ -66,9 +66,9 @@ fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> 
 /// https://fountain.io/syntax#section-slug
 fn scene<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let parse_scene_type = alt((tag("INT"), tag("EXT")));
-    let parser = tuple((parse_scene_type, tag(": "), not_line_ending, line_ending));
+    let parser = tuple((parse_scene_type, tag(". "), not_line_ending, line_ending));
     map(context("scene", parser), |(scene_type, _, desc, _)| {
-        Line::Scene(format!("{}: {}", scene_type, desc))
+        Line::Scene(format!("{}. {}", scene_type, desc))
     })(i)
 }
 
@@ -103,7 +103,7 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
     })(i)
 }
 
-/// Parses an entire Fountain document
+/// Parses a string slice into a Fountain document.
 pub fn document<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Document, E> {
     let parser = pair(opt(metadata), separated_list(line_ending, block));
     map(parser, |(metadata, blocks)| {
@@ -120,7 +120,7 @@ pub fn document<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Docu
 fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
     let action = map(action, singleton);
     let scene = map(scene, singleton);
-    context("block", alt((spd_block, sd_block, scene, action)))(i)
+    context("block", alt((scene, spd_block, sd_block, action)))(i)
 }
 
 /// Creates a vector containing only the given element.
@@ -186,17 +186,17 @@ Pages:
 
     #[test]
     fn test_int_scene() {
-        let input_text = "INT: Michael's house\n";
+        let input_text = "INT. Michael's house\n";
         let output = scene::<(&str, ErrorKind)>(input_text);
-        let expected = Ok(("", Line::Scene("INT: Michael's house".to_owned())));
+        let expected = Ok(("", Line::Scene("INT. Michael's house".to_owned())));
         assert_eq!(output, expected);
     }
 
     #[test]
     fn test_ext_scene() {
-        let input_text = "EXT: Michael's garden\n";
+        let input_text = "EXT. Michael's garden\n";
         let output = scene::<(&str, ErrorKind)>(input_text);
-        let expected = Ok(("", Line::Scene("EXT: Michael's garden".to_owned())));
+        let expected = Ok(("", Line::Scene("EXT. Michael's garden".to_owned())));
         assert_eq!(output, expected);
     }
 
@@ -257,7 +257,7 @@ Pages:
 
     #[test]
     fn test_document_tiny() {
-        let input_text = "INT: Public library
+        let input_text = "INT. Public library
 
 Lights up on a table, totally empty except for a book.
 ";
@@ -271,7 +271,7 @@ Lights up on a table, totally empty except for a book.
 
     #[test]
     fn test_document_small() {
-        let input_text = "INT: Public library
+        let input_text = "INT. Public library
 
 Lights up on a table, totally empty except for a book.
 
@@ -288,11 +288,30 @@ Is anyone there?
     }
 
     #[test]
+    fn test_alien() {
+        let input_text = "\
+INT. MESS
+
+The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.
+
+KANE
+First thing I'm going to do when we get back is eat some decent food.
+";
+        let output = document::<VerboseError<&str>>(input_text);
+        dbg!(&output);
+        assert!(output.is_ok());
+        let (unparsed, output) = output.unwrap();
+        dbg!(&output);
+        dbg!(&unparsed);
+        assert_eq!(output.lines.len(), 4);
+    }
+
+    #[test]
     fn test_document() {
         let input_text = "\
 Title:
     Stephen King Interview
-INT: Set of some morning TV show.
+INT. Set of some morning TV show.
 
 PAULINE
 (cheerily)
@@ -306,7 +325,7 @@ My pleasure. Now, I'm sure you get asked this all the time, but, where do you ge
 ";
         let output = document::<VerboseError<&str>>(input_text);
         let expected_lines = vec![
-            Line::Scene("INT: Set of some morning TV show.".to_string()),
+            Line::Scene("INT. Set of some morning TV show.".to_string()),
             Line::Speaker("PAULINE".to_string()),
             Line::Parenthetical("cheerily".to_string()),
             Line::Dialogue("Welcome back to In Conversation, I'm your host Pauline Rogers and today we're talking to renowned horror writer Stephen King. Great to have you here, Stephen.".to_string()),

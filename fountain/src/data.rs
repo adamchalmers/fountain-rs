@@ -1,3 +1,6 @@
+//! Datatypes for storing Fountain documents.
+
+/// A Line represents a line of a screenplay, as defined in the [Fountain spec](https://fountain.io/syntax)
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Line {
     /// A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
@@ -20,6 +23,12 @@ pub enum Line {
     Parenthetical(String),
 }
 
+/// Defines a document's metadata. Metadata should appear at the start of a screenplay and look
+/// like this:
+/// Title:
+///     Alien
+/// Author:
+///     Dan O'Bannon
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct Metadata {
     /// Document author
@@ -30,6 +39,7 @@ pub struct Metadata {
     pub other: Vec<(String, String)>,
 }
 
+/// A Document is the entire screenplay, both metadata and its actual contents (stored as Lines).
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct Document {
     pub lines: Vec<Line>,
