@@ -7,7 +7,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "fountain"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "nom 5.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -16,7 +16,7 @@ dependencies = [
 name = "fountain-cli"
 version = "0.1.0"
 dependencies = [
- "fountain 0.1.4",
+ "fountain 0.1.5",
  "nom 5.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

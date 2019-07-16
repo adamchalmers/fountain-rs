@@ -26,12 +26,24 @@ pub enum Line {
 /// Defines a document's metadata. Metadata should appear at the start of a screenplay and look
 /// like this:
 /// ```
-/// let metadata = "
+/// use fountain::parse_document;
+/// use fountain::data::{Metadata, Document};
+/// let metadata = "\
 /// Title:
 ///     Alien
 /// Author:
 ///     Dan O'Bannon
+/// Revision:
+///     8
 /// ";
+/// let expected_metadata = Metadata {
+///     title: Some("Alien".to_owned()),
+///     author: Some("Dan O'Bannon".to_owned()),
+///     other: vec![("Revision".to_owned(), "8".to_owned())],
+/// };
+/// let doc = fountain::parse_document::<(&str, _)>(&metadata);
+/// let parsed_metadata = doc.unwrap().1.metadata;
+/// assert_eq!(parsed_metadata, expected_metadata);
 /// ```
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct Metadata {
