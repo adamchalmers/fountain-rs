@@ -25,7 +25,7 @@ pub fn parse(screenplay: &str) -> String {
         Ok((unparsed, parsed)) => format!(
             "\
             <h1>Unparsed</h1>
-            <p>{}</p>
+            <p>'{}'</p>
             {}",
             unparsed,
             parsed.as_html()
