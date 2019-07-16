@@ -1,6 +1,6 @@
 [package]
 name = "fountain"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Adam Chalmers <adam.s.chalmers@gmail.com>"]
 edition = "2018"
 description = "Parser and formatter for the Fountain screenplay markup language"

@@ -57,7 +57,8 @@ impl Document {
 {}
 {}
     </body>
-</html>",
+</html>
+",
             style.join("\n"),
             self.metadata.as_html(),
             nodes.join("\n")

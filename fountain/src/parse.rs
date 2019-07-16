@@ -131,7 +131,7 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
 /// let expected = Document { lines: expected_lines, ..Default::default() };
 /// assert_eq!(Ok(("", expected)), parse_result);
 /// ```
-pub fn document<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Document, E> {
+pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, Document, E> {
     let parser = pair(opt(metadata), separated_list(line_ending, block));
     map(parser, |(metadata, blocks)| {
         let lines: Vec<_> = blocks.into_iter().flatten().collect();
@@ -139,7 +139,7 @@ pub fn document<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Docu
             lines,
             metadata: metadata.unwrap_or_default(),
         }
-    })(i)
+    })(text)
 }
 
 /// A block is either:
