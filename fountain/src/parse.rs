@@ -104,11 +104,38 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
 }
 
 /// Parses a string slice into a Fountain document.
+/// ```
+/// use fountain::data::{Document, Line};
+/// use nom::error::VerboseError;
+///
+/// const SCREENPLAY: &str = "\
+/// INT. MESS
+///
+/// The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.
+///
+/// KANE
+/// First thing I'm going to do when we get back is eat some decent food.
+/// ";
+///
+/// // Parse the Fountain-structured plaintext into a fountain::data::Document
+/// let parse_result = fountain::parse_document::<VerboseError<&str>>(&SCREENPLAY);
+/// let expected_lines = vec![
+///     Line::Scene("INT. MESS".to_owned()),
+///     Line::Action("The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.".to_owned()),
+///     Line::Speaker("KANE".to_owned()),
+///     Line::Dialogue("First thing I'm going to do when we get back is eat some decent food.".to_owned()),
+/// ];
+/// let expected = Document { lines: expected_lines, ..Default::default() };
+/// assert_eq!(Ok(("", expected)), parse_result);
+/// ```
 pub fn document<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Document, E> {
     let parser = pair(opt(metadata), separated_list(line_ending, block));
     map(parser, |(metadata, blocks)| {
         let lines: Vec<_> = blocks.into_iter().flatten().collect();
-        Document { lines, metadata }
+        Document {
+            lines,
+            metadata: metadata.unwrap_or_default(),
+        }
     })(i)
 }
 
@@ -340,7 +367,7 @@ My pleasure. Now, I'm sure you get asked this all the time, but, where do you ge
         };
         let expected = Document {
             lines: expected_lines,
-            metadata: Some(expected_metadata),
+            metadata: expected_metadata,
         };
         assert!(output.is_ok());
         let (unparsed, output) = output.unwrap();

@@ -25,10 +25,14 @@ pub enum Line {
 
 /// Defines a document's metadata. Metadata should appear at the start of a screenplay and look
 /// like this:
+/// ```
+/// let metadata = "
 /// Title:
 ///     Alien
 /// Author:
 ///     Dan O'Bannon
+/// ";
+/// ```
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct Metadata {
     /// Document author
@@ -43,5 +47,5 @@ pub struct Metadata {
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct Document {
     pub lines: Vec<Line>,
-    pub metadata: Option<Metadata>,
+    pub metadata: Metadata,
 }

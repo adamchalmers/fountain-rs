@@ -59,10 +59,7 @@ impl Document {
     </body>
 </html>",
             style.join("\n"),
-            self.metadata
-                .clone()
-                .map(|m| m.as_html())
-                .unwrap_or_default(),
+            self.metadata.as_html(),
             nodes.join("\n")
         )
     }

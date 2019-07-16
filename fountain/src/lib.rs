@@ -9,6 +9,7 @@
 //! // Parses a plain text Fountain-markup document and outputs HTML.
 //! use fountain;
 //! use nom::error::ErrorKind;
+//!
 //! const SCREENPLAY: &str = "
 //! INT. Mess hall
 //!
