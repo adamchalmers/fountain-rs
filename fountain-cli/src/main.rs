@@ -12,7 +12,7 @@ const ERR_UNPARSED: &str = "Parsing stopped before the document ended. Check the
 fn main() -> Result<(), FountainError> {
     let args: Vec<String> = env::args().collect();
     if let Some(path) = args.get(1) {
-        println!("{}", fountain_to_html(path)?)
+        println!("{}", in_html(&fountain_to_html(path)?))
     } else {
         eprintln!("Missing FILEPATH arg");
         eprintln!("usage: $ fountain FILEPATH");
@@ -20,18 +20,36 @@ fn main() -> Result<(), FountainError> {
     Ok(())
 }
 
-// Parse the .fountain file at the given filepath into HTML.
-fn fountain_to_html(filepath: &str) -> Result<String, FountainError> {
+// Parse the .fountain file at the given filepath
+fn fountain_to_html(filepath: &str) -> Result<fountain::data::Document, FountainError> {
     eprintln!("Reading {}", filepath);
     let text = read(filepath)?;
     match fountain::parse_document::<(&str, _)>(&text) {
         Err(e) => Err(FountainError::ParseError(format!("{:?}", e))),
-        Ok(("", parsed)) => Ok(parsed.as_html()),
+        Ok(("", parsed)) => Ok(parsed),
         Ok((unparsed, parsed)) => {
             eprintln!("{}: {}", ERR_UNPARSED, unparsed);
-            Ok(parsed.as_html())
+            Ok(parsed)
         }
     }
+}
+
+fn in_html(parsed: &fountain::data::Document) -> String {
+    format!("
+<html>
+    <head>
+        <style>
+{}
+        </style>
+    </head>
+    <body>
+{}
+    </body>
+</html>
+",
+    include_str!("style.css"),
+    parsed.as_html(),
+    )
 }
 
 // Read a file's contents into a string

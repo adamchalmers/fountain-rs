@@ -40,27 +40,17 @@ impl Metadata {
     }
 }
 
-/// Renders HTML representation of a Fountain document.
+/// Renders HTML representation of a Fountain document. Root element is a div.
 impl Document {
     pub fn as_html(&self) -> String {
         let nodes: Vec<_> = self.lines.iter().map(|l| l.as_html()).collect();
-        let style: Vec<_> = include_str!("style.css").split('\n').collect();
         format!(
-            "
-<html>
-    <head>
-        <style>
-{}
-        </style>
-    </head>
-    <body>
-{}
-{}
-    </body>
-</html>
-",
-            style.join("\n"),
-            self.metadata.as_html(),
+            "<div>\n{}\n{}\n</div>\n",
+            if self.metadata == Metadata::default() {
+                "".to_owned()
+            } else {
+                self.metadata.as_html()
+            },
             nodes.join("\n")
         )
     }

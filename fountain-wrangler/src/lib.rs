@@ -20,13 +20,18 @@ pub fn parse(screenplay: &str) -> String {
 
     // Write to String buffer.
     match fountain::parse_document::<(&str, _)>(&screenplay) {
-        Err(e) => format!("<h1>Error</h1><p>{:?}</p>", e),
+        Err(e) => format!(
+            "\
+<h1 class='fountain-parse-error-title'>Error</h1>
+<p class='fountain-parse-error-body'>{:?}</p>",
+            e
+        ),
         Ok(("", parsed)) => parsed.as_html(),
         Ok((unparsed, parsed)) => format!(
             "\
-            <h1>Unparsed</h1>
-            <p>'{}'</p>
-            {}",
+<h1 class='fountain-unparsed-title'>Unparsed</h1>
+<p class='fountain-unparsed-body'>'{}'</p>
+{}",
             unparsed,
             parsed.as_html()
         ),

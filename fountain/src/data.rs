@@ -1,7 +1,9 @@
 //! Datatypes for storing Fountain documents.
 
+use serde::{Deserialize, Serialize};
+
 /// A Line represents a line of a screenplay, as defined in the [Fountain spec](https://fountain.io/syntax)
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum Line {
     /// A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
     /// A Scene Heading always has at least one blank line preceding it.
@@ -45,7 +47,7 @@ pub enum Line {
 /// let parsed_metadata = doc.unwrap().1.metadata;
 /// assert_eq!(parsed_metadata, expected_metadata);
 /// ```
-#[derive(PartialEq, Eq, Clone, Debug, Default)]
+#[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Metadata {
     /// Document author
     pub author: Option<String>,
@@ -56,7 +58,7 @@ pub struct Metadata {
 }
 
 /// A Document is the entire screenplay, both metadata and its actual contents (stored as Lines).
-#[derive(PartialEq, Eq, Clone, Debug, Default)]
+#[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Document {
     pub lines: Vec<Line>,
     pub metadata: Metadata,
