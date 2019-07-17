@@ -1,4 +1,4 @@
-port module Main exposing (Model, Msg(..), init, main, toJs, update, view)
+port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, toJs, update, view)
 
 import Browser
 import Html exposing (..)
@@ -10,6 +10,7 @@ import Http exposing (Error(..))
 import Json.Decode as Decode
 import Json.Encode as Enc
 import Parser exposing (deadEndsToString)
+import String exposing (endsWith)
 
 
 
@@ -102,10 +103,18 @@ postScreenplay s =
         , body =
             Http.jsonBody <|
                 Enc.object
-                    [ ( "screenplay", Enc.string s )
+                    [ ( "screenplay", Enc.string <| ensureTrailingNewline s )
                     ]
         , expect = Http.expectString RenderResponse
         }
+
+
+ensureTrailingNewline s =
+    if endsWith "\n" s then
+        s
+
+    else
+        s ++ "\n"
 
 
 

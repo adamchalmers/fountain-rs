@@ -5,23 +5,22 @@ use serde::{Deserialize, Serialize};
 /// A Line represents a line of a screenplay, as defined in the [Fountain spec](https://fountain.io/syntax)
 #[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 pub enum Line {
-    /// A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
-    /// A Scene Heading always has at least one blank line preceding it.
-    /// https://fountain.io/syntax#section-slug
+    /// A [Scene Heading](https://fountain.io/syntax#section-slug) is any line that has a blank line
+    /// following it, and either begins with INT or EXT. A Scene Heading always has at least one
+    /// blank line preceding it.
     Scene(String),
-    /// Action, or scene description, is any paragraph that doesn't meet criteria for another
-    /// element (e.g. Scene Heading, Character, Dialogue, etc.)
-    /// https://fountain.io/syntax#section-action
+    /// [Action](https://fountain.io/syntax#section-action), or scene description, is any paragraph
+    /// that doesn't meet criteria for another element (e.g. Scene Heading, Character, etc.)
     Action(String),
-    /// Dialogue is any text following a Character or Parenthetical element.
-    /// https://fountain.io/syntax#section-dialogue
+    /// [Dialogue](https://fountain.io/syntax#section-dialogue) is any text following a Character or
+    /// Parenthetical element.
     Dialogue(String),
-    /// A speaker is simply a Fountain "Character" element,
-    /// i.e. any line entirely in uppercase and ends in newline. I renamed it "Speaker" interally
-    /// to avoid confusion with a CS character i.e. a byte.
+    /// A [Speaker](https://fountain.io/syntax#section-character) is any line entirely in uppercase.
+    /// The Fountain spec defines this as a "Character" but this library calls it a Speaker to avoid
+    /// confusion, as in computer science a character means something different.
     Speaker(String),
-    /// Parentheticals are wrapped in parentheses () and end in newline.
-    /// https://fountain.io/syntax#section-paren
+    /// [Parentheticals](https://fountain.io/syntax#section-paren) are wrapped in parentheses ()
+    /// and end in newline.
     Parenthetical(String),
 }
 

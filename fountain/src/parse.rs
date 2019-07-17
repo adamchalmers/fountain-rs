@@ -109,11 +109,6 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
 /// use nom::error::VerboseError;
 ///
 /// const SCREENPLAY: &str = "\
-/// INT. MESS
-///
-/// The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats \
-/// from a dish on the table.
-///
 /// KANE
 /// First thing I'm going to do when we get back is eat some decent food.
 /// ";
@@ -121,9 +116,6 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
 /// // Parse the Fountain-structured plaintext into a fountain::data::Document
 /// let parse_result = fountain::parse_document::<VerboseError<&str>>(&SCREENPLAY);
 /// let expected_lines = vec![
-///     Line::Scene("INT. MESS".to_owned()),
-///     Line::Action("The entire crew is seated. Hungrily swallowing huge portions of artificial \
-/// food. The cat eats from a dish on the table.".to_owned()),
 ///     Line::Speaker("KANE".to_owned()),
 ///     Line::Dialogue("First thing I'm going to do when we get back is eat some decent \
 /// food.".to_owned()),
