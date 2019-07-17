@@ -125,7 +125,7 @@ ensureTrailingNewline s =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "container" ]
         [ headerDiv
         , editor model
         , footerDiv
@@ -134,18 +134,8 @@ view model =
 
 headerDiv =
     header []
-        [ div
-            [ class "with-sidebar" ]
-            [ div []
-                [ div []
-                    [ h1 [] [ text "Fountain-rs live demo" ]
-                    , renderBtn
-                    ]
-                , div
-                    []
-                    [ p [] [ text "Learn about ", a [ href "https://fountain.io/", target "_blank" ] [ text "Fountain" ], text ", the markup for screenwriters" ]
-                    ]
-                ]
+        [ table []
+            [ tr [] [ td [] [ h1 [] [ text "Fountain Screenplay Editor" ] ], td [] [ renderBtn ] ]
             ]
         ]
 
@@ -157,7 +147,9 @@ footerDiv =
             , a [ href "https://crates.io/crates/fountain", target "_blank" ] [ text "Fountain" ]
             , text " crate, which is compiled into WebAssembly and run in the browser via "
             , a [ href "https://blog.cloudflare.com/introducing-wrangler-cli/" ] [ text "Cloudflare Workers" ]
-            , text ". Frontend written in Elm. Functionality also available via "
+            , text "."
+            , br [] []
+            , text "Frontend written in Elm. Functionality also available via "
             , a [ href "https://github.com/adamchalmers/fountain-rs", target "_blank" ] [ text "CLI" ]
             ]
         ]
@@ -165,7 +157,7 @@ footerDiv =
 
 renderBtn =
     button
-        [ class "pure-button pure-button-primary"
+        [ class "pure-button pure-button-primary render-button"
         , onClick RenderBtnPress
         ]
         [ text "Render screenplay" ]
@@ -173,7 +165,7 @@ renderBtn =
 
 editor model =
     -- A two-column editor. Users write plaintext on the left. Rendered markup displayed to the right.
-    div [ class "with-sidebar" ]
+    div [ class "editor with-sidebar" ]
         [ div
             []
             [ div [ class "pane input-pane" ]
@@ -183,8 +175,6 @@ editor model =
             , div [ class "pane output-pane" ]
                 [ div [] (outputPane model) ]
             ]
-
-        -- , div [ class "clear" ] []
         ]
 
 
@@ -233,8 +223,8 @@ main =
 
 
 exampleHTML =
-    """<h1 class='metadata'>Alien</h1>
-<h3 class='metadata'>By Dan O'Bannon</h3>
+    """<h1 class='titlepage'>Alien</h1>
+<h3 class='titlepage'>By Dan O'Bannon</h3>
 
 <p class='page-break'></p>
 
