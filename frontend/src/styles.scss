@@ -2,29 +2,80 @@
 
 body {
     background-color: #ddd;
-    margin-top: 20px;
+    padding: 10px;
 }
-.container {
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
+
 header {
-    display: flex;
+    display: fixed;
+    top: 0;
+    left: 0;
     align-items: center;
-    img {
-        width: 60px;
-        margin-right: 30px;
-    }
 }
 
-button {
-    margin-right: 15px;
+.with-sidebar {
+    overflow: hidden;
 }
 
-.logo {
-    background: url('images/logo.png');
-    width: 60px;
-    height: 60px;
-    background-size: cover;
+.with-sidebar > * {
+    display: flex;
+    flex-wrap: wrap;
+    margin: calc(var(--s1) / 2 * -1);
+}
+
+.with-sidebar > * > * {
+    margin: calc(var(--s1) / 2);
+    flex-basis: 50%;
+    flex-grow: 1;
+}
+
+.with-sidebar > * > :first-child {
+    flex-basis: 0;
+    flex-grow: 999;
+    min-width: calc(50% - var(--s1));
+    align-items: stretch;
+  }
+
+footer {
+    display: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+.scene {
+    font-weight: bold;
+    text-align: center;
+}
+
+.dialogue {
+    width: 400px;
+    margin: 0 auto;
+}
+
+.metadata {
+    text-align: center;
+}
+
+.speaker {
+    text-align: center;
+}
+
+.parenthetical {
+    text-align: center;
+    font-style: italic;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+.output-pane {
+    padding: 20px;
+    font-family: monospace;
+    background-color: white;
+    border: 1px solid gray;
+}
+
+.input-pane textarea {
+    font-family: monospace;
+    width: 95%;
 }

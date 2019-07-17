@@ -9,6 +9,7 @@ import Html.Parser.Util exposing (toVirtualDom)
 import Http exposing (Error(..))
 import Json.Decode as Decode
 import Json.Encode as Enc
+import Parser exposing (deadEndsToString)
 
 
 
@@ -27,25 +28,15 @@ port toJs : String -> Cmd msg
 
 
 type alias Model =
-    { screenplay : String
-    , rendered : String
+    { plaintextScreenplay : String
+    , renderedScreenplay : String
     , serverMessage : String
     }
 
 
 init : String -> ( Model, Cmd Msg )
 init flags =
-    ( { screenplay = flags, serverMessage = "", rendered = "" }, Cmd.none )
-
-
-sampleText =
-    """INT. MESS
-
-The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.
-
-KANE
-First thing I'm going to do when we get back is eat some decent food.
-"""
+    ( { plaintextScreenplay = flags, serverMessage = "", renderedScreenplay = exampleHTML }, Cmd.none )
 
 
 
@@ -55,9 +46,7 @@ First thing I'm going to do when we get back is eat some decent food.
 
 
 type Msg
-    = TestServer
-    | OnServerResponse (Result Http.Error String)
-    | ChangeScreenplay String
+    = ChangeScreenplay String
     | RenderBtnPress
     | RenderResponse (Result Http.Error String)
 
@@ -66,32 +55,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         ChangeScreenplay s ->
-            ( { model | screenplay = s }, Cmd.none )
+            ( { model | plaintextScreenplay = s }, Cmd.none )
 
         RenderBtnPress ->
-            ( model, postScreenplay model.screenplay )
-
-        TestServer ->
-            let
-                expect =
-                    Http.expectJson OnServerResponse (Decode.field "result" Decode.string)
-            in
-            ( model
-            , Http.get { url = "/test", expect = expect }
-            )
-
-        OnServerResponse res ->
-            case res of
-                Ok r ->
-                    ( { model | serverMessage = r }, Cmd.none )
-
-                Err err ->
-                    ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
+            ( model, postScreenplay model.plaintextScreenplay )
 
         RenderResponse res ->
             case res of
                 Ok r ->
-                    ( { model | rendered = r }, Cmd.none )
+                    ( { model | renderedScreenplay = r }, Cmd.none )
 
                 Err err ->
                     ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
@@ -144,32 +116,91 @@ postScreenplay s =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ header []
-            [ h1 [] [ text "Fountain-rs live demo" ]
-            ]
-        , div [ class "pure-g" ]
-            [ div [ class "pure-u-1-2" ]
-                [ textarea [ onInput ChangeScreenplay, cols 40, rows 20 ] [ text model.screenplay ]
-                , button
-                    [ class "pure-button pure-button-primary"
-                    , onClick RenderBtnPress
-                    ]
-                    [ text "Render" ]
-                ]
-            , div [ class "pure-u-1-2" ] [ div [ style "border" "1px solid gray" ] <| rendersOf model ]
-            ]
-        , div [] [ a [ href "https://fountain.io/", target "_blank" ] [ text "New to Fountain?" ] ]
+    div []
+        [ headerDiv
+        , editor model
+        , footerDiv
         ]
 
 
-rendersOf model =
-    case Html.Parser.run model.rendered of
-        Ok html ->
-            html |> toVirtualDom
+headerDiv =
+    header []
+        [ div
+            [ class "with-sidebar" ]
+            [ div []
+                [ div []
+                    [ h1 [] [ text "Fountain-rs live demo" ]
+                    , renderBtn
+                    ]
+                , div
+                    []
+                    [ p [] [ text "Learn about ", a [ href "https://fountain.io/", target "_blank" ] [ text "Fountain" ], text ", the markup for screenwriters" ]
+                    ]
+                ]
+            ]
+        ]
 
-        Err err ->
-            [ text "Render error" ]
+
+footerDiv =
+    footer []
+        [ p []
+            [ text "Parsing done in Rust via my "
+            , a [ href "https://crates.io/crates/fountain", target "_blank" ] [ text "Fountain" ]
+            , text " crate, which is compiled into WebAssembly and run in the browser via "
+            , a [ href "https://blog.cloudflare.com/introducing-wrangler-cli/" ] [ text "Cloudflare Workers" ]
+            , text ". Frontend written in Elm. Functionality also available via "
+            , a [ href "https://github.com/adamchalmers/fountain-rs", target "_blank" ] [ text "CLI" ]
+            ]
+        ]
+
+
+renderBtn =
+    button
+        [ class "pure-button pure-button-primary"
+        , onClick RenderBtnPress
+        ]
+        [ text "Render screenplay" ]
+
+
+editor model =
+    -- A two-column editor. Users write plaintext on the left. Rendered markup displayed to the right.
+    div [ class "with-sidebar" ]
+        [ div
+            []
+            [ div [ class "pane input-pane" ]
+                [ userTextInput model
+                , br [] []
+                ]
+            , div [ class "pane output-pane" ]
+                [ div [] (outputPane model) ]
+            ]
+
+        -- , div [ class "clear" ] []
+        ]
+
+
+userTextInput model =
+    -- Users type their plaintext here
+    textarea
+        [ onInput ChangeScreenplay
+        , rows 40
+        , cols 40
+        ]
+        [ text model.plaintextScreenplay ]
+
+
+outputPane model =
+    -- Displays the rendered screenplay or errors.
+    if model.serverMessage == "" then
+        case Html.Parser.run model.renderedScreenplay of
+            Ok html ->
+                toVirtualDom html
+
+            Err errs ->
+                [ text <| deadEndsToString errs ]
+
+    else
+        [ text <| model.serverMessage ]
 
 
 
@@ -190,3 +221,16 @@ main =
                 }
         , subscriptions = \_ -> Sub.none
         }
+
+
+exampleHTML =
+    """<h1 class='metadata'>Alien</h1>
+<h3 class='metadata'>By Dan O'Bannon</h3>
+
+<p class='page-break'></p>
+
+<p class='scene'>INT. MESS</p>
+<p class='action'>The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.</p>
+<p class='speaker'>KANE</p>
+<p class='dialogue'>First thing I'm going to do when we get back is eat some decent food.</p>
+"""
