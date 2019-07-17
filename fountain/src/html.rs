@@ -12,14 +12,14 @@ impl Line {
     }
 }
 
-impl Metadata {
+impl TitlePage {
     fn as_html(&self) -> String {
         let title = format!(
-            "<h1 class='metadata'>{}</h1>",
+            "<h1 class='titlepage'>{}</h1>",
             self.title.clone().unwrap_or_else(|| "Untitled".to_string())
         );
         let author = format!(
-            "<h3 class='metadata'>By {}</h3>",
+            "<h3 class='titlepage'>By {}</h3>",
             self.author
                 .clone()
                 .unwrap_or_else(|| "Author unknown".to_string())
@@ -46,10 +46,10 @@ impl Document {
         let nodes: Vec<_> = self.lines.iter().map(|l| l.as_html()).collect();
         format!(
             "<div>\n{}\n{}\n</div>\n",
-            if self.metadata == Metadata::default() {
+            if self.titlepage == TitlePage::default() {
                 "".to_owned()
             } else {
-                self.metadata.as_html()
+                self.titlepage.as_html()
             },
             nodes.join("\n")
         )

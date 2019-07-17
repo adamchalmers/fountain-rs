@@ -2,7 +2,7 @@ use super::data::*;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take_while1},
-    character::complete::{char, line_ending, not_line_ending, space1},
+    character::complete::{char, line_ending, not_line_ending, multispace1},
     combinator::{cut, map, opt},
     error::{context, ParseError},
     multi::{many0, separated_list},
@@ -72,26 +72,26 @@ fn scene<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     })(i)
 }
 
-fn metadata_val<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+fn titlepage_val<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = "\n\r:";
     let parser = take_while1(move |c| !chars.contains(c));
-    context("metadata_val", parser)(i)
+    context("titlepage_val", parser)(i)
 }
 
-/// Match a single key-value metadata item, e.g.
+/// Match a single key-value titlepage item, e.g.
 /// Title:
 ///     THE RING
-fn metadata_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (&str, &str), E> {
-    let parser = tuple((metadata_val, tag(":"), line_ending, space1, some_line));
-    map(context("MetadataItem", parser), |(key, _, _, _, val)| {
+fn titlepage_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (&str, &str), E> {
+    let parser = tuple((titlepage_val, tag(":"), multispace1, some_line));
+    map(context("titlepage_item", parser), |(key, _, _, val)| {
         (key, val)
     })(i)
 }
 
-/// Matches the document's Metadata
-fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata, E> {
-    map(context("Metadata", many0(metadata_item)), |items| {
-        let mut m = Metadata::default();
+/// Matches the document's TitlePage
+fn titlepage<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, TitlePage, E> {
+    map(context("Title page", many0(titlepage_item)), |items| {
+        let mut m = TitlePage::default();
         for (k, v) in items {
             match k {
                 "Title" => m.title = Some(v.to_string()),
@@ -103,7 +103,8 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
     })(i)
 }
 
-/// Parses a string slice into a Fountain document.
+/// Parses a string slice into a Fountain document. Your input string should end in a
+/// newline for parsing to succeed.
 /// ```
 /// use fountain::data::{Document, Line};
 /// use nom::error::VerboseError;
@@ -124,12 +125,16 @@ fn metadata<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Metadata
 /// assert_eq!(Ok(("", expected)), parse_result);
 /// ```
 pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, Document, E> {
-    let parser = pair(opt(metadata), separated_list(line_ending, block));
-    map(parser, |(metadata, blocks)| {
+    let parser = pair(
+        opt(terminated(titlepage, opt(line_ending))), // Documents may begin with a title page
+        separated_list(line_ending, block), // Documents must then contain screenplay lines
+    );
+
+    map(parser, |(titlepage, blocks)| {
         let lines: Vec<_> = blocks.into_iter().flatten().collect();
         Document {
             lines,
-            metadata: metadata.unwrap_or_default(),
+            titlepage: titlepage.unwrap_or_default(),
         }
     })(text)
 }
@@ -168,17 +173,16 @@ mod tests {
     use nom::error::{ErrorKind, VerboseError};
 
     #[test]
-    fn test_metadata() {
+    fn test_titlepage() {
         let input_text = "\
-Title:
-    MUPPET TREASURE ISLAND
+Title: MUPPET TREASURE ISLAND
 Author:
     Jerry Juhl
 Pages:
     223
 ";
-        let output = metadata::<VerboseError<&str>>(input_text);
-        let expected = Metadata {
+        let output = titlepage::<VerboseError<&str>>(input_text);
+        let expected = TitlePage {
             title: Some("MUPPET TREASURE ISLAND".to_string()),
             author: Some("Jerry Juhl".to_string()),
             other: vec![("Pages".to_string(), "223".to_string())],
@@ -333,6 +337,7 @@ First thing I'm going to do when we get back is eat some decent food.
         let input_text = "\
 Title:
     Stephen King Interview
+
 INT. Set of some morning TV show.
 
 PAULINE
@@ -356,13 +361,13 @@ My pleasure. Now, I'm sure you get asked this all the time, but, where do you ge
             Line::Speaker("PAULINE".to_string()),
             Line::Dialogue("My pleasure. Now, I'm sure you get asked this all the time, but, where do you get your ideas from?".to_string()),
         ];
-        let expected_metadata = Metadata {
+        let expected_titlepage = TitlePage {
             title: Some("Stephen King Interview".to_string()),
             ..Default::default()
         };
         let expected = Document {
             lines: expected_lines,
-            metadata: expected_metadata,
+            titlepage: expected_titlepage,
         };
         assert!(output.is_ok());
         let (unparsed, output) = output.unwrap();

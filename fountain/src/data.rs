@@ -10,9 +10,9 @@ pub enum Line {
     /// blank line preceding it.
     Scene(String),
     /// [Action](https://fountain.io/syntax#section-action), or scene description, is any paragraph
-    /// that doesn't meet criteria for another element (e.g. Scene Heading, Character, etc.)
+    /// that doesn't meet criteria for another element (e.g. Scene Heading, Speaker, etc.)
     Action(String),
-    /// [Dialogue](https://fountain.io/syntax#section-dialogue) is any text following a Character or
+    /// [Dialogue](https://fountain.io/syntax#section-dialogue) is any text following a Speaker or
     /// Parenthetical element.
     Dialogue(String),
     /// A [Speaker](https://fountain.io/syntax#section-character) is any line entirely in uppercase.
@@ -24,12 +24,12 @@ pub enum Line {
     Parenthetical(String),
 }
 
-/// Defines a document's metadata. Metadata should appear at the start of a screenplay and look
+/// Defines a document's title page. TitlePage should appear at the start of a screenplay and look
 /// like this:
 /// ```
 /// use fountain::parse_document;
-/// use fountain::data::{Metadata, Document};
-/// let metadata = "\
+/// use fountain::data::{TitlePage, Document};
+/// let titlepage = "\
 /// Title:
 ///     Alien
 /// Author:
@@ -37,17 +37,17 @@ pub enum Line {
 /// Revision:
 ///     8
 /// ";
-/// let expected_metadata = Metadata {
+/// let expected_titlepage = TitlePage {
 ///     title: Some("Alien".to_owned()),
 ///     author: Some("Dan O'Bannon".to_owned()),
 ///     other: vec![("Revision".to_owned(), "8".to_owned())],
 /// };
-/// let doc = fountain::parse_document::<(&str, _)>(&metadata);
-/// let parsed_metadata = doc.unwrap().1.metadata;
-/// assert_eq!(parsed_metadata, expected_metadata);
+/// let doc = fountain::parse_document::<(&str, _)>(&titlepage);
+/// let parsed_titlepage = doc.unwrap().1.titlepage;
+/// assert_eq!(parsed_titlepage, expected_titlepage);
 /// ```
 #[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Metadata {
+pub struct TitlePage {
     /// Document author
     pub author: Option<String>,
     /// Document title
@@ -56,9 +56,9 @@ pub struct Metadata {
     pub other: Vec<(String, String)>,
 }
 
-/// A Document is the entire screenplay, both metadata and its actual contents (stored as Lines).
+/// A Document is the entire screenplay, both title page and its actual contents (stored as Lines).
 #[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Document {
     pub lines: Vec<Line>,
-    pub metadata: Metadata,
+    pub titlepage: TitlePage,
 }
