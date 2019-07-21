@@ -22,6 +22,8 @@ pub enum Line {
     /// [Parentheticals](https://fountain.io/syntax#section-paren) are wrapped in parentheses ()
     /// and end in newline.
     Parenthetical(String),
+    /// [Transitions](https://fountain.io/syntax#section-trans) end in TO. or start with >
+    Transition(String),
 }
 
 /// Defines a document's title page. TitlePage should appear at the start of a screenplay and look

@@ -2,7 +2,7 @@ use super::data::*;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take_while1},
-    character::complete::{char, line_ending, not_line_ending, multispace1},
+    character::complete::{char, line_ending, multispace1, not_line_ending},
     combinator::{cut, map, opt},
     error::{context, ParseError},
     multi::{many0, separated_list},
@@ -59,6 +59,22 @@ fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let parser = terminated(no_lower, line_ending);
     map(context("speaker", parser), |s| Line::Speaker(s.to_string()))(i)
+}
+
+/// Parses a Transition, which either starts with > or ends with "TO:"
+/// https://fountain.io/syntax#section-trans
+fn transition_to<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+    let p = tuple((no_lower, tag("TO:"), line_ending));
+    let parser = map(p, |(a, b, c)| Line::Transition(format!("{}{}{}", a, b, c)));
+    context("transition_to", parser)(i)
+}
+
+/// Parses a Transition, which either starts with > or ends with "TO:"
+/// https://fountain.io/syntax#section-trans
+fn transition_forced<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+    let p = pair(tag("> "), some_line);
+    let parser = map(p, |(a, b)| Line::Transition(format!("{}{}", a, b)));
+    context("transition_forced", parser)(i)
 }
 
 /// Parses a Scene Heading. A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
@@ -209,6 +225,22 @@ Pages:
         ));
         assert_eq!(output, expected);
     }
+
+    #[test]
+    fn test_transition() {
+        let input_text = "FADE TO:\n";
+        let output = transition_to::<(&str, ErrorKind)>(input_text);
+        let expected = Ok(("", Line::Speaker("FADE TO:".to_owned())));
+        assert_eq!(output, expected);
+    }
+
+    // #[test]
+    // fn test_forced_transition() {
+    //     let input_text = "> Burn to white.\n";
+    //     let output = transition_forced::<(&str, ErrorKind)>(input_text);
+    //     let expected = Ok(("", Line::Speaker("> Burn to white.".to_owned())));
+    //     assert_eq!(output, expected);
+    // }
 
     #[test]
     fn test_int_scene() {
