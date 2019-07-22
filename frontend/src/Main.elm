@@ -146,19 +146,17 @@ footerDiv =
             [ text "Made by "
             , link "https://twitter.com/adam_chal" "@adam_chal"
             , text ". Parsing done in Rust via my "
-            , a [ href "https://crates.io/crates/fountain", target "_blank" ] [ text "Fountain" ]
+            , link "https://crates.io/crates/fountain" "Fountain"
             , text " crate, which is compiled into WebAssembly and run in the browser via "
-            , a [ href "https://blog.cloudflare.com/introducing-wrangler-cli/" ] [ text "Cloudflare Workers" ]
-            , text "."
-            , br [] []
-            , text "Frontend written in Elm. Functionality also available via "
-            , a [ href "https://github.com/adamchalmers/fountain-rs", target "_blank" ] [ text "CLI" ]
+            , link "https://blog.cloudflare.com/introducing-wrangler-cli/" "Cloudflare Workers"
+            , text ". Frontend written in Elm. Functionality also available via "
+            , link "https://github.com/adamchalmers/fountain-rs" "CLI"
             ]
         ]
 
 
 link to txt =
-    a [ href to ] [ text txt ]
+    a [ href to, target "_blank" ] [ text txt ]
 
 
 renderBtn =
@@ -204,7 +202,7 @@ main =
         , update = update
         , view =
             \m ->
-                { title = "Elm 0.19 starter"
+                { title = "Write a screenplay in Elm"
                 , body = [ view m ]
                 }
         , subscriptions = \_ -> Sub.none
