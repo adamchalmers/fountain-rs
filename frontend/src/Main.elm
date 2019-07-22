@@ -126,24 +126,26 @@ ensureTrailingNewline s =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ headerDiv
-        , editor model
-        , footerDiv
-        ]
-
-
-headerDiv =
-    header []
-        [ table []
-            [ tr [] [ td [] [ h1 [] [ text "Fountain Screenplay Editor" ] ], td [] [ renderBtn ] ]
+        [ header []
+            [ h1 [] [ text "Fountain Screenplay Editor" ]
+            , renderBtn
             ]
+        , div [ class "editor editor-in" ]
+            [ userTextInput model
+            , br [] []
+            ]
+        , div [ class "editor editor-out" ]
+            (outputPane model)
+        , footerDiv
         ]
 
 
 footerDiv =
     footer []
         [ p []
-            [ text "Parsing done in Rust via my "
+            [ text "Made by "
+            , link "https://twitter.com/adam_chal" "@adam_chal"
+            , text ". Parsing done in Rust via my "
             , a [ href "https://crates.io/crates/fountain", target "_blank" ] [ text "Fountain" ]
             , text " crate, which is compiled into WebAssembly and run in the browser via "
             , a [ href "https://blog.cloudflare.com/introducing-wrangler-cli/" ] [ text "Cloudflare Workers" ]
@@ -155,27 +157,14 @@ footerDiv =
         ]
 
 
+link to txt =
+    a [ href to ] [ text txt ]
+
+
 renderBtn =
     button
-        [ class "pure-button pure-button-primary render-button"
-        , onClick RenderBtnPress
-        ]
+        [ class "pure-button pure-button-primary", onClick RenderBtnPress ]
         [ text "Render screenplay" ]
-
-
-editor model =
-    -- A two-column editor. Users write plaintext on the left. Rendered markup displayed to the right.
-    div [ class "editor with-sidebar" ]
-        [ div
-            []
-            [ div [ class "pane input-pane" ]
-                [ userTextInput model
-                , br [] []
-                ]
-            , div [ class "pane output-pane" ]
-                [ div [] (outputPane model) ]
-            ]
-        ]
 
 
 userTextInput model =
