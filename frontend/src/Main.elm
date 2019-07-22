@@ -169,7 +169,7 @@ userTextInput model =
     -- Users type their plaintext here
     textarea
         [ onInput ChangeScreenplay
-        , rows 40
+        , rows 20
         , cols 40
         ]
         [ text model.plaintextScreenplay ]
