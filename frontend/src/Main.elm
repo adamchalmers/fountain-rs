@@ -1,4 +1,4 @@
-port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, toJs, update, view)
+port module Main exposing (Model, Msg(..), ensureTrailingNewline, init, main, update, view)
 
 import Browser
 import Html exposing (..)
@@ -15,29 +15,26 @@ import String exposing (endsWith)
 
 
 -- ---------------------------
--- PORTS
--- ---------------------------
-
-
-port toJs : String -> Cmd msg
-
-
-
--- ---------------------------
 -- MODEL
 -- ---------------------------
 
 
+{-| The entire app's state. Similar to the Store in React/Redux.
+-}
 type alias Model =
-    { plaintextScreenplay : String
-    , renderedScreenplay : String
-    , serverMessage : String
+    { plaintextScreenplay : String -- Plain text the user types in, encoded in Fountain markup
+    , renderedScreenplay : String -- The styled text, generated from the plaintext
+    , serverMessage : String -- Error messages if the user's markup was invalid
     }
 
 
+{-| What should the Model be when the user starts the app?
+-}
 init : String -> ( Model, Cmd Msg )
 init flags =
-    ( { plaintextScreenplay = flags, serverMessage = "", renderedScreenplay = exampleHTML }, Cmd.none )
+    ( { plaintextScreenplay = flags, serverMessage = "", renderedScreenplay = exampleHTML }
+    , Cmd.none
+    )
 
 
 
@@ -46,12 +43,16 @@ init flags =
 -- ---------------------------
 
 
+{-| Union/enum/ADT of every event that could happen in the app.
+-}
 type Msg
-    = ChangeScreenplay String
-    | RenderBtnPress
-    | RenderResponse (Result Http.Error String)
+    = ChangeScreenplay String -- User edited their plaintext screenplay
+    | RenderBtnPress -- User pressed the Render button
+    | RenderResponse (Result Http.Error String) -- The backend returned with rendered screenplay
 
 
+{-| Given some Msg, and the current Model, output the new model and a side-effect to execute.
+-}
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
@@ -95,9 +96,11 @@ httpErrorToString err =
 -- ---------------------------
 
 
+{-| Send HTTP request to the Fountain backend. Request contains the plaintext screenplay,
+response will contain the rendered screenplay.
+-}
 postScreenplay : String -> Cmd Msg
 postScreenplay s =
-    -- Send HTTP request to the tunnel HTTP API, expect response to just be a string
     Http.post
         { url = "https://adamchalmers.com/fountain"
         , body =
@@ -155,18 +158,23 @@ footerDiv =
         ]
 
 
+{-| Convenience function for simpler <a> links
+-}
 link to txt =
     a [ href to, target "_blank" ] [ text txt ]
 
 
+{-| When users click this button, the backend will style their screenplay
+-}
 renderBtn =
     button
         [ class "pure-button pure-button-primary", onClick RenderBtnPress ]
         [ text "Render screenplay" ]
 
 
+{-| This is where users type their plaintext screenplays
+-}
 userTextInput model =
-    -- Users type their plaintext here
     textarea
         [ onInput ChangeScreenplay
         , rows 20
@@ -175,8 +183,9 @@ userTextInput model =
         [ text model.plaintextScreenplay ]
 
 
+{-| This is where users see their rendered screenplay
+-}
 outputPane model =
-    -- Displays the rendered screenplay or errors.
     if model.serverMessage == "" then
         case Html.Parser.run model.renderedScreenplay of
             Ok html ->
@@ -195,6 +204,8 @@ outputPane model =
 -- ---------------------------
 
 
+{-| Wire all the various components together
+-}
 main : Program String Model Msg
 main =
     Browser.document
