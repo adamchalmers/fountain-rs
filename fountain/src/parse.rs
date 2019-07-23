@@ -2,11 +2,11 @@ use super::data::*;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag, take_while1},
-    character::complete::{char, line_ending, not_line_ending, multispace1},
-    combinator::{cut, map, opt},
+    character::complete::{char, line_ending, multispace1, not_line_ending},
+    combinator::{cut, map, opt, verify},
     error::{context, ParseError},
     multi::{many0, separated_list},
-    sequence::{delimited, pair, terminated, tuple},
+    sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 
@@ -59,6 +59,24 @@ fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let parser = terminated(no_lower, line_ending);
     map(context("speaker", parser), |s| Line::Speaker(s.to_string()))(i)
+}
+
+/// Parses a Transition, which ends with "TO:"
+/// https://fountain.io/syntax#section-trans
+fn transition_to<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+    let p = verify(terminated(no_lower, line_ending), |s: &str| {
+        s.ends_with("TO:")
+    });
+    let parser = map(p, |s| Line::Transition(s.to_owned()));
+    context("transition_to", parser)(i)
+}
+
+/// Parses a Forced Transition, which either starts with >
+/// https://fountain.io/syntax#section-trans
+fn transition_forced<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+    let p = preceded(tag("> "), some_line);
+    let parser = map(p, |s| Line::Transition(s.to_owned()));
+    context("transition_forced", parser)(i)
 }
 
 /// Parses a Scene Heading. A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
@@ -139,15 +157,24 @@ pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, D
     })(text)
 }
 
-/// A block is either:
-/// - An action
-/// - A scene header
-/// - A speaker then dialogue
-/// - A speaker then parenthetical then dialogue
+/// A block is either an:
+/// - Action
+/// - Scene header
+/// - Transition
+/// - Speaker then dialogue
+/// - Speaker then parenthetical then dialogue
 fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
-    let action = map(action, singleton);
-    let scene = map(scene, singleton);
-    context("block", alt((scene, spd_block, sd_block, action)))(i)
+    context(
+        "block",
+        alt((
+            map(transition_forced, singleton),
+            map(transition_to, singleton),
+            map(scene, singleton),
+            spd_block,
+            sd_block,
+            map(action, singleton),
+        )),
+    )(i)
 }
 
 /// Creates a vector containing only the given element.
@@ -207,6 +234,22 @@ Pages:
             "What really caused the fall of Rome?\n",
             Line::Speaker("MRS. THOMPSON".to_owned()),
         ));
+        assert_eq!(output, expected);
+    }
+
+    #[test]
+    fn test_transition() {
+        let input_text = "FADE TO:\n";
+        let output = transition_to::<VerboseError<&str>>(input_text);
+        let expected = Ok(("", Line::Transition("FADE TO:".to_owned())));
+        assert_eq!(output, expected);
+    }
+
+    #[test]
+    fn test_forced_transition() {
+        let input_text = "> Burn to white.\n";
+        let output = transition_forced::<(&str, ErrorKind)>(input_text);
+        let expected = Ok(("", Line::Transition("Burn to white.".to_owned())));
         assert_eq!(output, expected);
     }
 
@@ -304,13 +347,31 @@ Lights up on a table, totally empty except for a book.
 LIBRARIAN
 (scared)
 Is anyone there?
+
+CUT TO:
+
+EXT. YOGA RETREAT
+
+> Fade out
 ";
         let output = document::<VerboseError<&str>>(input_text);
         assert!(output.is_ok());
         let (unparsed, output) = output.unwrap();
         dbg!(&output);
         dbg!(&unparsed);
-        assert_eq!(output.lines.len(), 5);
+        assert_eq!(
+            output.lines,
+            vec![
+                Line::Scene("INT. Public library".to_owned()),
+                Line::Action("Lights up on a table, totally empty except for a book.".to_owned(),),
+                Line::Speaker("LIBRARIAN".to_owned(),),
+                Line::Parenthetical("scared".to_owned(),),
+                Line::Dialogue("Is anyone there?".to_owned(),),
+                Line::Transition("CUT TO:".to_owned(),),
+                Line::Scene("EXT. YOGA RETREAT".to_owned(),),
+                Line::Transition("Fade out".to_owned(),),
+            ]
+        );
     }
 
     #[test]
