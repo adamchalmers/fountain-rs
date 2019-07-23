@@ -6,7 +6,7 @@ impl Line {
             Line::Scene(s) => format!("<p class='scene'>{}</p>", s),
             Line::Action(s) => format!("<p class='action'>{}</p>", s),
             Line::Dialogue(s) => format!("<p class='dialogue'>{}</p>", s),
-            Line::Speaker(s) => format!("<p class='speaker'>{}</p>", s),
+            Line::Speaker{name, is_dual} => format!("<p class='speaker'>{}</p>", name),
             Line::Parenthetical(s) => format!("<p class='parenthetical'>({})</p>", s),
             Line::Transition(s) => format!("<p class='parenthetical'>({})</p>", s),
         }

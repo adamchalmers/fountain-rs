@@ -18,7 +18,9 @@ pub enum Line {
     /// A [Speaker](https://fountain.io/syntax#section-character) is any line entirely in uppercase.
     /// The Fountain spec defines this as a "Character" but this library calls it a Speaker to avoid
     /// confusion, as in computer science a character means something different.
-    Speaker(String),
+    /// The `is_dual` field indicates whether this is [Dual Dialogue](https://fountain.io/syntax#section-dual)
+    /// i.e. the character speaking simultaneously with the previous character.
+    Speaker{name: String, is_dual: bool},
     /// [Parentheticals](https://fountain.io/syntax#section-paren) are wrapped in parentheses ()
     /// and end in newline.
     Parenthetical(String),

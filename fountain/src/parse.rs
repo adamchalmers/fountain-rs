@@ -58,7 +58,10 @@ fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 /// https://fountain.io/syntax#section-character
 fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let parser = terminated(no_lower, line_ending);
-    map(context("speaker", parser), |s| Line::Speaker(s.to_string()))(i)
+    map(context("speaker", parser), |s| Line::Speaker {
+        name: s.to_string(),
+        is_dual: s.ends_with("^"),
+    })(i)
 }
 
 /// Parses a Transition, which ends with "TO:"
@@ -135,7 +138,7 @@ fn titlepage<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, TitlePa
 /// // Parse the Fountain-structured plaintext into a fountain::data::Document
 /// let parse_result = fountain::parse_document::<VerboseError<&str>>(&SCREENPLAY);
 /// let expected_lines = vec![
-///     Line::Speaker("KANE".to_owned()),
+///     Line::Speaker{name: "KANE".to_owned(), is_dual: false},
 ///     Line::Dialogue("First thing I'm going to do when we get back is eat some decent \
 /// food.".to_owned()),
 /// ];
@@ -232,7 +235,10 @@ Pages:
         let output = speaker::<(&str, ErrorKind)>(input_text);
         let expected = Ok((
             "What really caused the fall of Rome?\n",
-            Line::Speaker("MRS. THOMPSON".to_owned()),
+            Line::Speaker {
+                name: "MRS. THOMPSON".to_owned(),
+                is_dual: false,
+            },
         ));
         assert_eq!(output, expected);
     }
@@ -297,7 +303,10 @@ Pages:
         let input_text = "LIBRARIAN\nIs anyone there?\n";
         let output = sd_block::<(&str, ErrorKind)>(input_text);
         let expected = vec![
-            Line::Speaker("LIBRARIAN".to_string()),
+            Line::Speaker {
+                name: "LIBRARIAN".to_string(),
+                is_dual: false,
+            },
             Line::Dialogue("Is anyone there?".to_string()),
         ];
         assert_eq!(output, Ok(("", expected)));
@@ -308,7 +317,10 @@ Pages:
         let input_text = "LIBRARIAN\n(scared)\nIs anyone there?\n";
         let output = spd_block::<(&str, ErrorKind)>(input_text);
         let expected = vec![
-            Line::Speaker("LIBRARIAN".to_string()),
+            Line::Speaker {
+                name: "LIBRARIAN".to_string(),
+                is_dual: false,
+            },
             Line::Parenthetical("scared".to_string()),
             Line::Dialogue("Is anyone there?".to_string()),
         ];
@@ -364,7 +376,10 @@ EXT. YOGA RETREAT
             vec![
                 Line::Scene("INT. Public library".to_owned()),
                 Line::Action("Lights up on a table, totally empty except for a book.".to_owned(),),
-                Line::Speaker("LIBRARIAN".to_owned(),),
+                Line::Speaker {
+                    name: "LIBRARIAN".to_owned(),
+                    is_dual: false
+                },
                 Line::Parenthetical("scared".to_owned(),),
                 Line::Dialogue("Is anyone there?".to_owned(),),
                 Line::Transition("CUT TO:".to_owned(),),
@@ -414,12 +429,12 @@ My pleasure. Now, I'm sure you get asked this all the time, but, where do you ge
         let output = document::<VerboseError<&str>>(input_text);
         let expected_lines = vec![
             Line::Scene("INT. Set of some morning TV show.".to_string()),
-            Line::Speaker("PAULINE".to_string()),
+            Line::Speaker{name: "PAULINE".to_string(), is_dual: false},
             Line::Parenthetical("cheerily".to_string()),
             Line::Dialogue("Welcome back to In Conversation, I'm your host Pauline Rogers and today we're talking to renowned horror writer Stephen King. Great to have you here, Stephen.".to_string()),
-            Line::Speaker("STEPHEN KING".to_string()),
+            Line::Speaker{name: "STEPHEN KING".to_string(), is_dual: false},
             Line::Dialogue("Thanks for having me, Pauline.".to_string()),
-            Line::Speaker("PAULINE".to_string()),
+            Line::Speaker{name: "PAULINE".to_string(), is_dual: false},
             Line::Dialogue("My pleasure. Now, I'm sure you get asked this all the time, but, where do you get your ideas from?".to_string()),
         ];
         let expected_titlepage = TitlePage {
