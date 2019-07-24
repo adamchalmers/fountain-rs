@@ -39,4 +39,5 @@
 pub mod data;
 mod html;
 mod parse;
+mod utils;
 pub use parse::document as parse_document;

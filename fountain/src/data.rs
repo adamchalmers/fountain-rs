@@ -28,6 +28,27 @@ pub enum Line {
     Transition(String),
 }
 
+impl Line {
+    pub fn is_scene(&self) -> bool {
+        if let Line::Scene(_) = self { true } else {false }
+    }
+    pub fn is_dialogue(&self) -> bool {
+        if let Line::Dialogue(_) = self { true } else {false }
+    }
+    pub fn is_action(&self) -> bool {
+        if let Line::Action(_) = self { true } else {false }
+    }
+    pub fn is_speaker(&self) -> bool {
+        if let Line::Speaker{..} = self { true } else {false }
+    }
+    pub fn is_parenthetical(&self) -> bool {
+        if let Line::Parenthetical(_) = self { true } else {false }
+    }
+    pub fn is_transition(&self) -> bool {
+        if let Line::Transition (_) = self { true } else { false }
+    }
+}
+
 /// Defines a document's title page. TitlePage should appear at the start of a screenplay and look
 /// like this:
 /// ```
