@@ -1,23 +1,18 @@
 use super::data::*;
 use super::utils::*;
 
-impl Line {
-    fn as_html(&self) -> String {
-        match self {
-            Line::Scene(s) => format!("<p class='scene'>{}</p>", s),
-            Line::Action(s) => format!("<p class='action'>{}</p>", s),
-            Line::Dialogue(s) => format!("<p class='dialogue'>{}</p>", s),
-            Line::Speaker { name, is_dual: _ } => format!("<p class='speaker'>{}</p>", name),
-            Line::Parenthetical(s) => format!("<p class='parenthetical'>({})</p>", s),
-            Line::Transition(s) => format!("<p class='parenthetical'>({})</p>", s),
-        }
-    }
-}
+const DD_START: &str = "<div class='dual-dialogue'>";
+const DD_END: &str = "</div> <!-- end dual dialogue -->";
 
-enum Displayable {
-    Text(Line),
-    DualDialogueStart,
-    DualDialogueEnd,
+fn line_as_html(line: &Line) -> String {
+    match line {
+        Line::Scene(s) => format!("<p class='scene'>{}</p>", s),
+        Line::Action(s) => format!("<p class='action'>{}</p>", s),
+        Line::Dialogue(s) => format!("<p class='dialogue'>{}</p>", s),
+        Line::Speaker { name, is_dual: _ } => format!("<p class='speaker'>{}</p>", name),
+        Line::Parenthetical(s) => format!("<p class='parenthetical'>({})</p>", s),
+        Line::Transition(s) => format!("<p class='parenthetical'>({})</p>", s),
+    }
 }
 
 impl TitlePage {
@@ -64,11 +59,20 @@ impl Document {
 }
 
 fn as_nodes(lines: &[Line]) -> Vec<String> {
+    // Render all the lines
     let mut nodes = Vec::<String>::new();
-    let mut in_dual_dialogue = false;
     for line in lines {
-        nodes.push(line.as_html());
-        // If it's a Speaker line, consider rendering Dual Dialogue.
+        nodes.push(line_as_html(&line));
+    }
+    // Now go back and add dual dialogue elements
+    let n = lines.len();
+    for i in 0..n {
+        if let Line::Speaker { is_dual: true, .. } = lines[i] {
+            if let Some(dd) = dual_dialogue_bounds(&lines, i) {
+                nodes.insert(dd.start, DD_START.to_owned());
+                nodes.insert(dd.end + 1, DD_END.to_owned());
+            }
+        }
     }
     nodes
 }
@@ -78,8 +82,13 @@ fn as_nodes(lines: &[Line]) -> Vec<String> {
 fn dual_dialogue_bounds(lines: &[Line], dual_dialogue_carat: usize) -> Option<DualDialogue> {
     let start = position_before(&lines, dual_dialogue_carat, |line| line.is_speaker());
     let end = position_after(&lines, dual_dialogue_carat, |line| line.is_dialogue());
+    dbg!(&start);
+    dbg!(&end);
     match (start, end) {
-        (Some(start), Some(end)) => Some(DualDialogue { start, end }),
+        (Some(start), Some(end)) => Some(DualDialogue {
+            start,
+            end: end + 1,
+        }),
         _ => None,
     }
 }
@@ -87,12 +96,4 @@ fn dual_dialogue_bounds(lines: &[Line], dual_dialogue_carat: usize) -> Option<Du
 struct DualDialogue {
     pub start: usize,
     pub end: usize,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_dual_dialogue_bounds() {}
 }

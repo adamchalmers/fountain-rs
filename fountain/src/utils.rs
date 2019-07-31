@@ -14,8 +14,10 @@ pub fn position_after<T, P>(slice: &[T], start: usize, predicate: P) -> Option<u
 where
     P: Fn(&T) -> bool,
 {
-    for i in start + 1..slice.len() {
-        if predicate(&slice[i]) {
+    dbg!(&start);
+    for i in (start + 1)..slice.len() {
+        dbg!(&i);
+        if dbg!(predicate(&slice[i])) {
             return Some(i);
         }
     }
