@@ -33,7 +33,7 @@ a {
 }
 
 @media (min-width: 600px) {
-    .container {
+    .container-two-pane {
         display: grid;
         width: 100%;
         height: 100%;
@@ -44,6 +44,17 @@ a {
             "header header"
             "editor-in editor-out"
             "footer footer";
+    }
+
+    .container-one-pane {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        grid-gap: 1rem;
+        grid-template-rows: 40px 1fr;
+        grid-template-areas:
+            "header"
+            "editor-out"
     }
 
     .editor-in textarea {
@@ -69,6 +80,7 @@ a {
     grid-area: editor-out;
     background-color: #eee;
     border: 1px solid gray;
+    padding: 0 20px;
 }
 
 // Fountain styling

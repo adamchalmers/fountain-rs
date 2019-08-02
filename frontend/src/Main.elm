@@ -25,6 +25,7 @@ type alias Model =
     { plaintextScreenplay : String -- Plain text the user types in, encoded in Fountain markup
     , renderedScreenplay : String -- The styled text, generated from the plaintext
     , serverMessage : String -- Error messages if the user's markup was invalid
+    , fullscreen : Bool
     }
 
 
@@ -32,7 +33,11 @@ type alias Model =
 -}
 init : String -> ( Model, Cmd Msg )
 init flags =
-    ( { plaintextScreenplay = flags, serverMessage = "", renderedScreenplay = exampleHTML }
+    ( { plaintextScreenplay = flags
+      , serverMessage = ""
+      , renderedScreenplay = exampleHTML
+      , fullscreen = False
+      }
     , Cmd.none
     )
 
@@ -48,6 +53,7 @@ init flags =
 type Msg
     = ChangeScreenplay String -- User edited their plaintext screenplay
     | RenderBtnPress -- User pressed the Render button
+    | PrintViewPress -- User pressed the Print View button
     | RenderResponse (Result Http.Error String) -- The backend returned with rendered screenplay
 
 
@@ -61,6 +67,9 @@ update message model =
 
         RenderBtnPress ->
             ( model, postScreenplay model.plaintextScreenplay )
+
+        PrintViewPress ->
+            ( { model | fullscreen = not model.fullscreen }, Cmd.none )
 
         RenderResponse res ->
             case res of
@@ -128,11 +137,25 @@ ensureTrailingNewline s =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ header []
-            [ h1 [] [ text "Fountain Screenplay Editor" ]
-            , renderBtn
-            ]
+    if model.fullscreen then
+        viewOnePane model
+
+    else
+        viewTwoPane model
+
+
+viewOnePane : Model -> Html Msg
+viewOnePane model =
+    div [ class "container-one-pane" ]
+        [ pageHeader
+        , div [ class "editor editor-out editor-out-full" ] (outputPane model)
+        ]
+
+
+viewTwoPane : Model -> Html Msg
+viewTwoPane model =
+    div [ class "container-two-pane" ]
+        [ pageHeader
         , div [ class "editor editor-in" ]
             [ userTextInput model
             , br [] []
@@ -140,6 +163,16 @@ view model =
         , div [ class "editor editor-out" ]
             (outputPane model)
         , footerDiv
+        ]
+
+
+pageHeader =
+    header []
+        [ h1 [] [ text "Fountain Screenplay Editor" ]
+        , div []
+            [ printViewBtn
+            , renderBtn
+            ]
         ]
 
 
@@ -170,6 +203,14 @@ renderBtn =
     button
         [ class "pure-button pure-button-primary", onClick RenderBtnPress ]
         [ text "Render screenplay" ]
+
+
+{-| When users click this button, the backend will style their screenplay
+-}
+printViewBtn =
+    button
+        [ class "pure-button", onClick PrintViewPress ]
+        [ text "Toggle print view" ]
 
 
 {-| This is where users type their plaintext screenplays
