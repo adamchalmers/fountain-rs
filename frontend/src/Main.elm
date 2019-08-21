@@ -25,8 +25,14 @@ type alias Model =
     { plaintextScreenplay : String -- Plain text the user types in, encoded in Fountain markup
     , renderedScreenplay : String -- The styled text, generated from the plaintext
     , serverMessage : String -- Error messages if the user's markup was invalid
-    , fullscreen : Bool
+    , viewMode : ViewMode
     }
+
+
+type ViewMode
+    = Dual
+    | Write
+    | Print
 
 
 {-| What should the Model be when the user starts the app?
@@ -36,7 +42,7 @@ init flags =
     ( { plaintextScreenplay = flags
       , serverMessage = ""
       , renderedScreenplay = exampleHTML
-      , fullscreen = False
+      , viewMode = Write
       }
     , Cmd.none
     )
@@ -53,7 +59,7 @@ init flags =
 type Msg
     = ChangeScreenplay String -- User edited their plaintext screenplay
     | RenderBtnPress -- User pressed the Render button
-    | PrintViewPress -- User pressed the Print View button
+    | ToggleViewPress -- User pressed the Toggle View button
     | RenderResponse (Result Http.Error String) -- The backend returned with rendered screenplay
 
 
@@ -68,8 +74,8 @@ update message model =
         RenderBtnPress ->
             ( model, postScreenplay model.plaintextScreenplay )
 
-        PrintViewPress ->
-            ( { model | fullscreen = not model.fullscreen }, Cmd.none )
+        ToggleViewPress ->
+            ( { model | viewMode = nextMode model.viewMode }, Cmd.none )
 
         RenderResponse res ->
             case res of
@@ -78,6 +84,19 @@ update message model =
 
                 Err err ->
                     ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
+
+
+nextMode : ViewMode -> ViewMode
+nextMode m =
+    case m of
+        Dual ->
+            Write
+
+        Write ->
+            Print
+
+        Print ->
+            Dual
 
 
 httpErrorToString : Http.Error -> String
@@ -137,23 +156,35 @@ ensureTrailingNewline s =
 
 view : Model -> Html Msg
 view model =
-    if model.fullscreen then
-        viewOnePane model
+    case model.viewMode of
+        Print ->
+            printViewMode model
 
-    else
-        viewTwoPane model
+        Dual ->
+            dualViewMode model
+
+        Write ->
+            writeViewMode model
 
 
-viewOnePane : Model -> Html Msg
-viewOnePane model =
-    div [ class "container-one-pane" ]
+writeViewMode : Model -> Html Msg
+writeViewMode model =
+    div [ class "container-write-pane" ]
         [ pageHeader
-        , div [ class "editor editor-out editor-out-full" ] (outputPane model)
+        , div [ class "editor editor-in" ] [ userTextInput model ]
         ]
 
 
-viewTwoPane : Model -> Html Msg
-viewTwoPane model =
+printViewMode : Model -> Html Msg
+printViewMode model =
+    div [ class "container-print-pane" ]
+        [ pageHeader
+        , div [ class "editor editor-out" ] (outputPane model)
+        ]
+
+
+dualViewMode : Model -> Html Msg
+dualViewMode model =
     div [ class "container-two-pane" ]
         [ pageHeader
         , div [ class "editor editor-in" ]
@@ -168,9 +199,9 @@ viewTwoPane model =
 
 pageHeader =
     header []
-        [ h1 [] [ text "Write Your Screenplay" ]
+        [ h1 [] [ text "Screenplay Editor" ]
         , div []
-            [ printViewBtn
+            [ toggleViewBtn
             , renderBtn
             ]
         ]
@@ -205,12 +236,13 @@ renderBtn =
         [ text "Render screenplay" ]
 
 
-{-| When users click this button, the backend will style their screenplay
+{-| When users click this button, the view will cycle between input mode, output mode and dual-pane
+mode.
 -}
-printViewBtn =
+toggleViewBtn =
     button
-        [ class "pure-button", onClick PrintViewPress ]
-        [ text "Toggle print view" ]
+        [ class "pure-button", onClick ToggleViewPress ]
+        [ text "Toggle view" ]
 
 
 {-| This is where users type their plaintext screenplays
