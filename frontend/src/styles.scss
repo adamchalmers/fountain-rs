@@ -12,11 +12,22 @@ body {
 
 header {
     grid-area: header;
-    display: flex;
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
     padding: 10px;
+}
+
+@media print {
+    header {
+        display: none;
+    }
+}
+
+@media screen {
+    header {
+        display: flex;
+    }
 }
 
 header button {
@@ -79,8 +90,13 @@ a {
 .editor-out {
     grid-area: editor-out;
     background-color: #eee;
-    border: 1px solid gray;
     padding: 0 20px;
+}
+
+@media screen {
+    editor-out {
+        border: 1px solid gray;
+    }
 }
 
 // Fountain styling

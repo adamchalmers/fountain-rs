@@ -111,7 +111,7 @@ response will contain the rendered screenplay.
 postScreenplay : String -> Cmd Msg
 postScreenplay s =
     Http.post
-        { url = "https://adamchalmers.com/fountain"
+        { url = "https://screenplay.page/renderfountain"
         , body =
             Http.jsonBody <|
                 Enc.object
@@ -168,7 +168,7 @@ viewTwoPane model =
 
 pageHeader =
     header []
-        [ h1 [] [ text "Fountain Screenplay Editor" ]
+        [ h1 [] [ text "Write Your Screenplay" ]
         , div []
             [ printViewBtn
             , renderBtn
