@@ -59,7 +59,7 @@ init flags =
 type Msg
     = ChangeScreenplay String -- User edited their plaintext screenplay
     | RenderBtnPress -- User pressed the Render button
-    | ToggleViewPress -- User pressed the Toggle View button
+    | SetViewMode ViewMode -- Change which View Mode to render the UI in
     | RenderResponse (Result Http.Error String) -- The backend returned with rendered screenplay
 
 
@@ -74,8 +74,8 @@ update message model =
         RenderBtnPress ->
             ( model, postScreenplay model.plaintextScreenplay )
 
-        ToggleViewPress ->
-            ( { model | viewMode = nextMode model.viewMode }, Cmd.none )
+        SetViewMode vm ->
+            ( { model | viewMode = vm }, Cmd.none )
 
         RenderResponse res ->
             case res of
@@ -84,19 +84,6 @@ update message model =
 
                 Err err ->
                     ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
-
-
-nextMode : ViewMode -> ViewMode
-nextMode m =
-    case m of
-        Dual ->
-            Write
-
-        Write ->
-            Print
-
-        Print ->
-            Dual
 
 
 httpErrorToString : Http.Error -> String
@@ -170,7 +157,7 @@ view model =
 writeViewMode : Model -> Html Msg
 writeViewMode model =
     div [ class "container-write-pane" ]
-        [ pageHeader
+        [ pageHeader model
         , div [ class "editor editor-in" ] [ userTextInput model ]
         ]
 
@@ -178,7 +165,7 @@ writeViewMode model =
 printViewMode : Model -> Html Msg
 printViewMode model =
     div [ class "container-print-pane" ]
-        [ pageHeader
+        [ pageHeader model
         , div [ class "editor editor-out" ] (outputPane model)
         ]
 
@@ -186,7 +173,7 @@ printViewMode model =
 dualViewMode : Model -> Html Msg
 dualViewMode model =
     div [ class "container-two-pane" ]
-        [ pageHeader
+        [ pageHeader model
         , div [ class "editor editor-in" ]
             [ userTextInput model
             , br [] []
@@ -197,14 +184,44 @@ dualViewMode model =
         ]
 
 
-pageHeader =
+pageHeader model =
     header []
         [ h1 [] [ text "Screenplay Editor" ]
         , div []
-            [ toggleViewBtn
+            [ viewModeBtn model Dual
+            , viewModeBtn model Print
+            , viewModeBtn model Write
             , renderBtn
             ]
         ]
+
+
+viewModeBtn : Model -> ViewMode -> Html Msg
+viewModeBtn model viewMode =
+    let
+        buttonClass =
+            if model.viewMode == viewMode then
+                "pure-button-selected"
+
+            else
+                "pure-button"
+    in
+    button
+        [ class buttonClass, onClick (SetViewMode viewMode) ]
+        [ text <| toString viewMode ]
+
+
+toString : ViewMode -> String
+toString vm =
+    case vm of
+        Write ->
+            "Write View"
+
+        Print ->
+            "Print View"
+
+        Dual ->
+            "Two-Panel View"
 
 
 footerDiv =
@@ -234,15 +251,6 @@ renderBtn =
     button
         [ class "pure-button pure-button-primary", onClick RenderBtnPress ]
         [ text "Render screenplay" ]
-
-
-{-| When users click this button, the view will cycle between input mode, output mode and dual-pane
-mode.
--}
-toggleViewBtn =
-    button
-        [ class "pure-button", onClick ToggleViewPress ]
-        [ text "Toggle view" ]
 
 
 {-| This is where users type their plaintext screenplays
