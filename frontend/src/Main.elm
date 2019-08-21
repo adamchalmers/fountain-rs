@@ -271,4 +271,12 @@ exampleHTML =
 <p class='action'>The entire crew is seated. Hungrily swallowing huge portions of artificial food. The cat eats from a dish on the table.</p>
 <p class='speaker'>KANE</p>
 <p class='dialogue'>First thing I'm going to do when we get back is eat some decent food.</p>
+<div class='dual-dialogue'>
+<p class='speaker'>RIPLEY</p>
+<p class='dialogue'>Yeah, right</p>
+<p class='speaker'>ASH ^</p>
+<p class='dialogue'>Yeah, right</p>
+</div> <!-- end dual dialogue -->
+<p class='speaker'>KANE</p>
+<p class='dialogue'>Wow, sure hope I don't fall pregnant here.</p>
 """

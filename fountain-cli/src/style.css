@@ -29,6 +29,36 @@
     page-break-after: always;
 }
 
+div.dual-dialogue {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "hl hr"
+        "dl dr";
+    width: 400px;
+    margin: 0 auto;
+}
+
+div.dual-dialogue p.dialogue {
+    width: auto;
+}
+
+div.dual-dialogue :nth-child(1) {
+    grid-area: hl;
+}
+
+div.dual-dialogue :nth-child(2) {
+    grid-area: dl;
+}
+
+div.dual-dialogue :nth-child(3) {
+    grid-area: hr;
+}
+
+div.dual-dialogue :nth-child(4) {
+    grid-area: dr;
+}
+
 body {
     font-family: monospace, monospace;
     max-width: 800px;
