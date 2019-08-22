@@ -6,6 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A Line represents a line of a screenplay, as defined in the [Fountain spec](https://fountain.io/syntax)
+/// This will impl Serialize and Deserialize if the feature "use_serde" is specified.
 #[derive(PartialEq, Eq, Clone, Debug)]
 #[cfg_attr(feature = "use_serde", derive(Serialize, Deserialize))]
 pub enum Line {
@@ -77,7 +78,10 @@ impl Line {
     }
 }
 
-/// Defines a document's title page. TitlePage should appear at the start of a screenplay and look
+/// Defines a document's title page.
+/// This will impl Serialize and Deserialize if the feature "use_serde" is specified.
+///
+/// TitlePage should appear at the start of a screenplay and look
 /// like this:
 /// ```
 /// use fountain::parse_document;
@@ -111,6 +115,7 @@ pub struct TitlePage {
 }
 
 /// A Document is the entire screenplay, both title page and its actual contents (stored as Lines).
+/// This will impl Serialize and Deserialize if the feature "use_serde" is specified.
 #[derive(PartialEq, Eq, Clone, Debug, Default)]
 #[cfg_attr(feature = "use_serde", derive(Serialize, Deserialize))]
 pub struct Document {
