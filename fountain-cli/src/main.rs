@@ -22,7 +22,6 @@ fn main() -> Result<(), FountainError> {
 
 // Parse the .fountain file at the given filepath
 fn fountain_to_html(filepath: &str) -> Result<fountain::data::Document, FountainError> {
-    eprintln!("Reading {}", filepath);
     let text = read(filepath)?;
     match fountain::parse_document::<(&str, _)>(&text) {
         Err(e) => Err(FountainError::ParseError(format!("{:?}", e))),

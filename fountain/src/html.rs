@@ -82,8 +82,6 @@ fn as_nodes(lines: &[Line]) -> Vec<String> {
 fn dual_dialogue_bounds(lines: &[Line], dual_dialogue_carat: usize) -> Option<DualDialogue> {
     let start = position_before(&lines, dual_dialogue_carat, |line| line.is_speaker());
     let end = position_after(&lines, dual_dialogue_carat, |line| line.is_dialogue());
-    dbg!(&start);
-    dbg!(&end);
     match (start, end) {
         (Some(start), Some(end)) => Some(DualDialogue {
             start,

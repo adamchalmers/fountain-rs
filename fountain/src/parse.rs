@@ -59,7 +59,7 @@ fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     let parser = terminated(no_lower, line_ending);
     map(context("speaker", parser), |s| Line::Speaker {
-        name: s.to_string(),
+        name: strip_suffix(" ^", s),
         is_dual: s.ends_with("^"),
     })(i)
 }
@@ -197,10 +197,24 @@ fn spd_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Lin
     map(parser, |lines| vec![lines.0, lines.1, lines.2])(i)
 }
 
+fn strip_suffix(suffix: &str, string: &str) -> String {
+    if string.ends_with(suffix) {
+        string[..string.len()-suffix.len()].to_owned()
+    } else {
+        string.to_owned()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use nom::error::{ErrorKind, VerboseError};
+
+    #[test]
+    fn test_strip_suffix() {
+        assert_eq!(strip_suffix(" ^", "Adam ^"), "Adam");
+        assert_eq!(strip_suffix(" ^", "Adam"), "Adam");
+    }
 
     #[test]
     fn test_titlepage() {
@@ -331,7 +345,6 @@ Pages:
     fn test_parenthetical() {
         let input_text = "(gasping)\n";
         let output = parenthetical::<(&str, ErrorKind)>(input_text);
-        dbg!(&output);
         let expected = Ok(("", Line::Parenthetical("gasping".to_owned())));
         assert_eq!(output, expected);
     }
