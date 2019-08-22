@@ -42,7 +42,7 @@ init flags =
     ( { plaintextScreenplay = flags
       , serverMessage = ""
       , renderedScreenplay = exampleHTML
-      , viewMode = Write
+      , viewMode = Dual
       }
     , Cmd.none
     )
