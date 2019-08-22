@@ -1,6 +1,6 @@
 [package]
 name = "fountain"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Adam Chalmers <adam.s.chalmers@gmail.com>"]
 edition = "2018"
 description = "Parser and formatter for the Fountain screenplay markup language"
@@ -13,4 +13,7 @@ license = "Unlicense OR MIT"
 
 [dependencies]
 nom = "5.0.0"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[features]
+use_serde = ["serde"]

@@ -1,9 +1,13 @@
 //! Datatypes for storing Fountain documents.
-
+//! If you'd like these types to derive `Serialize` and `Deserialize` using `serde`, please set your
+//! dependency on `fountain` to use the `use_serde` feature:
+//! `fountain = { version = <target version>, features = ["use_serde"] }`
+#[cfg(feature = "use_serde")]
 use serde::{Deserialize, Serialize};
 
 /// A Line represents a line of a screenplay, as defined in the [Fountain spec](https://fountain.io/syntax)
-#[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "use_serde", derive(Serialize, Deserialize))]
 pub enum Line {
     /// A [Scene Heading](https://fountain.io/syntax#section-slug) is any line that has a blank line
     /// following it, and either begins with INT or EXT. A Scene Heading always has at least one
@@ -20,7 +24,7 @@ pub enum Line {
     /// confusion, as in computer science a character means something different.
     /// The `is_dual` field indicates whether this is [Dual Dialogue](https://fountain.io/syntax#section-dual)
     /// i.e. the character speaking simultaneously with the previous character.
-    Speaker{name: String, is_dual: bool},
+    Speaker { name: String, is_dual: bool },
     /// [Parentheticals](https://fountain.io/syntax#section-paren) are wrapped in parentheses ()
     /// and end in newline.
     Parenthetical(String),
@@ -30,22 +34,46 @@ pub enum Line {
 
 impl Line {
     pub fn is_scene(&self) -> bool {
-        if let Line::Scene(_) = self { true } else {false }
+        if let Line::Scene(_) = self {
+            true
+        } else {
+            false
+        }
     }
     pub fn is_dialogue(&self) -> bool {
-        if let Line::Dialogue(_) = self { true } else {false }
+        if let Line::Dialogue(_) = self {
+            true
+        } else {
+            false
+        }
     }
     pub fn is_action(&self) -> bool {
-        if let Line::Action(_) = self { true } else {false }
+        if let Line::Action(_) = self {
+            true
+        } else {
+            false
+        }
     }
     pub fn is_speaker(&self) -> bool {
-        if let Line::Speaker{..} = self { true } else {false }
+        if let Line::Speaker { .. } = self {
+            true
+        } else {
+            false
+        }
     }
     pub fn is_parenthetical(&self) -> bool {
-        if let Line::Parenthetical(_) = self { true } else {false }
+        if let Line::Parenthetical(_) = self {
+            true
+        } else {
+            false
+        }
     }
     pub fn is_transition(&self) -> bool {
-        if let Line::Transition (_) = self { true } else { false }
+        if let Line::Transition(_) = self {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -71,7 +99,8 @@ impl Line {
 /// let parsed_titlepage = doc.unwrap().1.titlepage;
 /// assert_eq!(parsed_titlepage, expected_titlepage);
 /// ```
-#[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
+#[cfg_attr(feature = "use_serde", derive(Serialize, Deserialize))]
 pub struct TitlePage {
     /// Document author
     pub author: Option<String>,
@@ -82,7 +111,8 @@ pub struct TitlePage {
 }
 
 /// A Document is the entire screenplay, both title page and its actual contents (stored as Lines).
-#[derive(PartialEq, Eq, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
+#[cfg_attr(feature = "use_serde", derive(Serialize, Deserialize))]
 pub struct Document {
     pub lines: Vec<Line>,
     pub titlepage: TitlePage,
