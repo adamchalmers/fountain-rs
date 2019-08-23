@@ -75,7 +75,7 @@ update message model =
             ( model, postScreenplay model.plaintextScreenplay )
 
         SetViewMode vm ->
-            ( { model | viewMode = vm }, Cmd.none )
+            ( { model | viewMode = vm }, postScreenplay model.plaintextScreenplay )
 
         RenderResponse res ->
             case res of
@@ -185,14 +185,28 @@ dualViewMode model =
 
 
 pageHeader model =
+    let
+        maybeBtn =
+            case model.viewMode of
+                Write ->
+                    []
+
+                Dual ->
+                    [ renderBtn ]
+
+                Print ->
+                    []
+
+        buttons =
+            maybeBtn
+                ++ [ viewModeBtn model Dual
+                   , viewModeBtn model Print
+                   , viewModeBtn model Write
+                   ]
+    in
     header []
         [ h1 [] [ text "Screenplay Editor" ]
-        , div []
-            [ viewModeBtn model Dual
-            , viewModeBtn model Print
-            , viewModeBtn model Write
-            , renderBtn
-            ]
+        , div [] buttons
         ]
 
 
