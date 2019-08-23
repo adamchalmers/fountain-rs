@@ -41,10 +41,10 @@ init : String -> ( Model, Cmd Msg )
 init flags =
     ( { plaintextScreenplay = flags
       , serverMessage = ""
-      , renderedScreenplay = exampleHTML
+      , renderedScreenplay = ""
       , viewMode = Dual
       }
-    , Cmd.none
+    , postScreenplay flags
     )
 
 
