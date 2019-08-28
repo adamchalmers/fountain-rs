@@ -11,7 +11,8 @@ fn line_as_html(line: &Line) -> String {
         Line::Dialogue(s) => format!("<p class='dialogue'>{}</p>", s),
         Line::Speaker { name, is_dual: _ } => format!("<p class='speaker'>{}</p>", name),
         Line::Parenthetical(s) => format!("<p class='parenthetical'>({})</p>", s),
-        Line::Transition(s) => format!("<p class='parenthetical'>({})</p>", s),
+        Line::Transition(s) => format!("<p class='transition'>({})</p>", s),
+        Line::Lyric(s) => format!("<p class='lyric'>({})</p>", s),
     }
 }
 

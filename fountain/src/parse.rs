@@ -93,6 +93,14 @@ fn scene<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
     })(i)
 }
 
+/// Parses a Lyric. You create a Lyric by starting with a line with a tilde ~. Fountain will remove
+/// the '~' and leave it up to the app to style the Lyric appropriately. Lyrics are always forced.
+/// There is no "automatic" way to get them.
+/// https://fountain.io/syntax#section-lyric
+fn lyric<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+    let parser = preceded(tag("~"), some_line);
+    map(context("lyric", parser), |s| Line::Lyric(s.to_owned()))(i)
+}
 fn titlepage_val<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = "\n\r:";
     let parser = take_while1(move |c| !chars.contains(c));
@@ -160,18 +168,17 @@ pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, D
     })(text)
 }
 
-/// A block is either an:
-/// - Action
-/// - Scene header
-/// - Transition
+/// A block is either:
 /// - Speaker then dialogue
 /// - Speaker then parenthetical then dialogue
+/// - Some Fountain element which is not speaker, dialogue or parenthetical.
 fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
     context(
         "block",
         alt((
             map(transition_forced, singleton),
             map(transition_to, singleton),
+            map(lyric, singleton),
             map(scene, singleton),
             spd_block,
             sd_block,
@@ -199,7 +206,7 @@ fn spd_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Lin
 
 fn strip_suffix(suffix: &str, string: &str) -> String {
     if string.ends_with(suffix) {
-        string[..string.len()-suffix.len()].to_owned()
+        string[..string.len() - suffix.len()].to_owned()
     } else {
         string.to_owned()
     }
@@ -286,6 +293,14 @@ Pages:
         let input_text = "EXT. Michael's garden\n";
         let output = scene::<(&str, ErrorKind)>(input_text);
         let expected = Ok(("", Line::Scene("EXT. Michael's garden".to_owned())));
+        assert_eq!(output, expected);
+    }
+
+    #[test]
+    fn test_lyric() {
+        let input_text = "~For he is an Englishman!\n";
+        let output = lyric::<(&str, ErrorKind)>(input_text);
+        let expected = Ok(("", Line::Lyric("For he is an Englishman!".to_owned())));
         assert_eq!(output, expected);
     }
 

@@ -31,6 +31,8 @@ pub enum Line {
     Parenthetical(String),
     /// [Transitions](https://fountain.io/syntax#section-trans) end in TO. or start with >
     Transition(String),
+    /// [Lyrics](https://fountain.io/syntax#section-lyrics) are lines starting with a tilde (~).
+    Lyric(String),
 }
 
 impl Line {
@@ -71,6 +73,13 @@ impl Line {
     }
     pub fn is_transition(&self) -> bool {
         if let Line::Transition(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+    pub fn is_lyric(&self) -> bool {
+        if let Line::Lyric(_) = self {
             true
         } else {
             false
