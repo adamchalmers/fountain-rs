@@ -3,5 +3,5 @@
 members = [
     "fountain",
     "fountain-cli",
-    "fountain-wrangler",
+    "cf-worker",
 ]
