@@ -13,7 +13,6 @@ license = "Unlicense OR MIT"
 
 [dependencies]
 fountain = { path = "../fountain" }
-nom = "5.0.0"
 
 [[bin]]
 name = "fountain"

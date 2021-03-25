@@ -4,14 +4,16 @@ use nom::{
     bytes::complete::{is_not, tag, take_while1},
     character::complete::{char, line_ending, multispace1, not_line_ending},
     combinator::{cut, map, opt, verify},
-    error::{context, ParseError},
-    multi::{many0, separated_list},
+    error::{context, ContextError, ParseError},
+    multi::{many0, separated_list0},
     sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 
 /// Matches strings that contain no lower-case English letters.
-fn no_lower<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+fn no_lower<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, &'a str, E> {
     let chars = "abcdefghijklmnopqrstuvwxyz\n\r";
     context("no_lower", take_while1(move |c| !chars.contains(c)))(i)
 }
@@ -19,20 +21,26 @@ fn no_lower<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str,
 /// Parses an Action. Action, or scene description, is any paragraph that doesn't meet criteria for another
 /// element (e.g. Scene Heading, Character, Dialogue, etc.)
 /// https://fountain.io/syntax#section-action
-fn action<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn action<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     map(context("action", some_line), |s: &str| {
         Line::Action(s.to_string())
     })(i)
 }
 
 /// Matches any sequence of non-line-ending characters, terminated by a line ending.
-fn some_line<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+fn some_line<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, &'a str, E> {
     terminated(not_line_ending, line_ending)(i)
 }
 
 /// Parses a Dialogue. Dialogue is any text following a Character or Parenthetical element.
 /// https://fountain.io/syntax#section-dialogue
-fn dialogue<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn dialogue<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     map(terminated(not_line_ending, line_ending), |s: &str| {
         Line::Dialogue(s.to_string())
     })(i)
@@ -40,7 +48,9 @@ fn dialogue<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E>
 
 /// Parses a Parenthetical. Parentheticals are wrapped in parentheses () and end in newline.
 /// https://fountain.io/syntax#section-paren
-fn parenthetical<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn parenthetical<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let parser = terminated(in_parens, cut(line_ending));
     map(context("parenthetical", parser), |s: &str| {
         Line::Parenthetical(s.to_string())
@@ -48,7 +58,9 @@ fn parenthetical<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Lin
 }
 
 /// Matches "(x)" and returns "x"
-fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+fn in_parens<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, &'a str, E> {
     delimited(char('('), is_not(")"), char(')'))(i)
 }
 
@@ -56,7 +68,9 @@ fn in_parens<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 /// i.e. any line entirely in uppercase and ends in newline. I renamed it "Speaker" interally
 /// to avoid confusion with a CS character i.e. a byte.
 /// https://fountain.io/syntax#section-character
-fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn speaker<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let parser = terminated(no_lower, line_ending);
     map(context("speaker", parser), |s| Line::Speaker {
         name: strip_suffix(" ^", s),
@@ -66,7 +80,9 @@ fn speaker<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> 
 
 /// Parses a Transition, which ends with "TO:"
 /// https://fountain.io/syntax#section-trans
-fn transition_to<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn transition_to<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let p = verify(terminated(no_lower, line_ending), |s: &str| {
         s.ends_with("TO:")
     });
@@ -76,7 +92,9 @@ fn transition_to<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Lin
 
 /// Parses a Forced Transition, which either starts with >
 /// https://fountain.io/syntax#section-trans
-fn transition_forced<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn transition_forced<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let p = preceded(tag("> "), some_line);
     let parser = map(p, |s| Line::Transition(s.to_owned()));
     context("transition_forced", parser)(i)
@@ -85,7 +103,9 @@ fn transition_forced<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str,
 /// Parses a Scene Heading. A Scene Heading is any line that has a blank line following it, and either begins with INT or EXT.
 /// A Scene Heading always has at least one blank line preceding it.
 /// https://fountain.io/syntax#section-slug
-fn scene<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn scene<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let parse_scene_type = alt((tag("INT"), tag("EXT")));
     let parser = tuple((parse_scene_type, tag(". "), not_line_ending, line_ending));
     map(context("scene", parser), |(scene_type, _, desc, _)| {
@@ -97,11 +117,15 @@ fn scene<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
 /// the '~' and leave it up to the app to style the Lyric appropriately. Lyrics are always forced.
 /// There is no "automatic" way to get them.
 /// https://fountain.io/syntax#section-lyric
-fn lyric<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Line, E> {
+fn lyric<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Line, E> {
     let parser = preceded(tag("~"), some_line);
     map(context("lyric", parser), |s| Line::Lyric(s.to_owned()))(i)
 }
-fn titlepage_val<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+fn titlepage_val<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, &'a str, E> {
     let chars = "\n\r:";
     let parser = take_while1(move |c| !chars.contains(c));
     context("titlepage_val", parser)(i)
@@ -110,7 +134,9 @@ fn titlepage_val<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a
 /// Match a single key-value titlepage item, e.g.
 /// Title:
 ///     THE RING
-fn titlepage_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (&str, &str), E> {
+fn titlepage_item<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, (&str, &str), E> {
     let parser = tuple((titlepage_val, tag(":"), multispace1, some_line));
     map(context("titlepage_item", parser), |(key, _, _, val)| {
         (key, val)
@@ -118,7 +144,9 @@ fn titlepage_item<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, (&
 }
 
 /// Matches the document's TitlePage
-fn titlepage<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, TitlePage, E> {
+fn titlepage<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, TitlePage, E> {
     map(context("Title page", many0(titlepage_item)), |items| {
         let mut m = TitlePage::default();
         for (k, v) in items {
@@ -153,10 +181,12 @@ fn titlepage<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, TitlePa
 /// let expected = Document { lines: expected_lines, ..Default::default() };
 /// assert_eq!(Ok(("", expected)), parse_result);
 /// ```
-pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, Document, E> {
+pub fn document<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    text: &'a str,
+) -> IResult<&'a str, Document, E> {
     let parser = pair(
         opt(terminated(titlepage, opt(line_ending))), // Documents may begin with a title page
-        separated_list(line_ending, block), // Documents must then contain screenplay lines
+        separated_list0(line_ending, block), // Documents must then contain screenplay lines
     );
 
     map(parser, |(titlepage, blocks)| {
@@ -172,7 +202,9 @@ pub fn document<'a, E: ParseError<&'a str>>(text: &'a str) -> IResult<&'a str, D
 /// - Speaker then dialogue
 /// - Speaker then parenthetical then dialogue
 /// - Some Fountain element which is not speaker, dialogue or parenthetical.
-fn block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
+fn block<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Vec<Line>, E> {
     context(
         "block",
         alt((
@@ -193,13 +225,17 @@ fn singleton<T>(t: T) -> Vec<T> {
 }
 
 // Speaker then dialogue
-fn sd_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
+fn sd_block<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Vec<Line>, E> {
     let parser = context("sd block", pair(speaker, dialogue));
     map(parser, |lines| vec![lines.0, lines.1])(i)
 }
 
 // Speaker then parenthetical then dialogue
-fn spd_block<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, Vec<Line>, E> {
+fn spd_block<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Vec<Line>, E> {
     let parser = context("spd block", tuple((speaker, parenthetical, dialogue)));
     map(parser, |lines| vec![lines.0, lines.1, lines.2])(i)
 }
