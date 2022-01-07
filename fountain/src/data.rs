@@ -37,53 +37,25 @@ pub enum Line {
 
 impl Line {
     pub fn is_scene(&self) -> bool {
-        if let Line::Scene(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Scene(_))
     }
     pub fn is_dialogue(&self) -> bool {
-        if let Line::Dialogue(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Dialogue(_))
     }
     pub fn is_action(&self) -> bool {
-        if let Line::Action(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Action(_))
     }
     pub fn is_speaker(&self) -> bool {
-        if let Line::Speaker { .. } = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Speaker { .. })
     }
     pub fn is_parenthetical(&self) -> bool {
-        if let Line::Parenthetical(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Parenthetical(_))
     }
     pub fn is_transition(&self) -> bool {
-        if let Line::Transition(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Transition(_))
     }
     pub fn is_lyric(&self) -> bool {
-        if let Line::Lyric(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Line::Lyric(_))
     }
 }
 

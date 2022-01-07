@@ -12,7 +12,7 @@ categories = ["command-line-utilities", "text-processing"]
 license = "Unlicense OR MIT"
 
 [dependencies]
-nom = {version = "6", features = ["alloc"], default-features = false }
+nom = {version = "7", features = ["alloc"], default-features = false }
 serde = { version = "1", features = ["derive"], optional = true }
 
 [features]

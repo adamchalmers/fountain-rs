@@ -61,15 +61,13 @@ impl Document {
 
 fn as_nodes(lines: &[Line]) -> Vec<String> {
     // Render all the lines
-    let mut nodes = Vec::<String>::new();
-    for line in lines {
-        nodes.push(line_as_html(&line));
-    }
+    let mut nodes: Vec<String> = lines.iter().map(line_as_html).collect();
+
     // Now go back and add dual dialogue elements
     let n = lines.len();
     for i in 0..n {
         if let Line::Speaker { is_dual: true, .. } = lines[i] {
-            if let Some(dd) = dual_dialogue_bounds(&lines, i) {
+            if let Some(dd) = dual_dialogue_bounds(lines, i) {
                 nodes.insert(dd.start, DD_START.to_owned());
                 nodes.insert(dd.end + 1, DD_END.to_owned());
             }
@@ -81,8 +79,8 @@ fn as_nodes(lines: &[Line]) -> Vec<String> {
 // Find the start/end bounds of the dual dialogue block, indicated by a carated Speaker block
 // at the index provided.
 fn dual_dialogue_bounds(lines: &[Line], dual_dialogue_carat: usize) -> Option<DualDialogue> {
-    let start = position_before(&lines, dual_dialogue_carat, |line| line.is_speaker());
-    let end = position_after(&lines, dual_dialogue_carat, |line| line.is_dialogue());
+    let start = position_before(lines, dual_dialogue_carat, |line| line.is_speaker());
+    let end = position_after(lines, dual_dialogue_carat, |line| line.is_dialogue());
     match (start, end) {
         (Some(start), Some(end)) => Some(DualDialogue {
             start,

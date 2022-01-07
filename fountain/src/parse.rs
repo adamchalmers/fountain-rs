@@ -74,7 +74,7 @@ fn speaker<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     let parser = terminated(no_lower, line_ending);
     map(context("speaker", parser), |s| Line::Speaker {
         name: strip_suffix(" ^", s),
-        is_dual: s.ends_with("^"),
+        is_dual: s.ends_with('^'),
     })(i)
 }
 
@@ -120,7 +120,7 @@ fn scene<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 fn lyric<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, Line, E> {
-    let parser = preceded(tag("~"), some_line);
+    let parser = preceded(char('~'), some_line);
     map(context("lyric", parser), |s| Line::Lyric(s.to_owned()))(i)
 }
 fn titlepage_val<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
@@ -137,7 +137,7 @@ fn titlepage_val<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 fn titlepage_item<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, (&str, &str), E> {
-    let parser = tuple((titlepage_val, tag(":"), multispace1, some_line));
+    let parser = tuple((titlepage_val, char(':'), multispace1, some_line));
     map(context("titlepage_item", parser), |(key, _, _, val)| {
         (key, val)
     })(i)
@@ -241,8 +241,8 @@ fn spd_block<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 }
 
 fn strip_suffix(suffix: &str, string: &str) -> String {
-    if string.ends_with(suffix) {
-        string[..string.len() - suffix.len()].to_owned()
+    if let Some(stripped) = string.strip_suffix(suffix) {
+        stripped.to_owned()
     } else {
         string.to_owned()
     }

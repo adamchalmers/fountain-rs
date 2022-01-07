@@ -7,19 +7,19 @@ where
             return Some(i);
         }
     }
-    return None;
+    None
 }
 
 pub fn position_after<T, P>(slice: &[T], start: usize, predicate: P) -> Option<usize>
 where
     P: Fn(&T) -> bool,
 {
-    for i in (start + 1)..slice.len() {
-        if predicate(&slice[i]) {
+    for (i, item) in slice.iter().enumerate().skip(start + 1) {
+        if predicate(item) {
             return Some(i);
         }
     }
-    return None;
+    None
 }
 
 #[cfg(test)]
