@@ -1,7 +1,6 @@
 mod error;
 
 use error::FountainError;
-use fountain;
 use std::env;
 use std::fs::File;
 use std::io;
@@ -34,7 +33,8 @@ fn fountain_to_html(filepath: &str) -> Result<fountain::data::Document, Fountain
 }
 
 fn in_html(parsed: &fountain::data::Document) -> String {
-    format!("
+    format!(
+        "
 <html>
     <head>
         <style>
@@ -46,8 +46,8 @@ fn in_html(parsed: &fountain::data::Document) -> String {
     </body>
 </html>
 ",
-    include_str!("style.css"),
-    parsed.as_html(),
+        include_str!("style.css"),
+        parsed.as_html(),
     )
 }
 

@@ -2,7 +2,6 @@ mod utils;
 
 use cfg_if::cfg_if;
 
-use fountain;
 use wasm_bindgen::prelude::*;
 cfg_if! {
     // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -19,7 +18,7 @@ pub fn parse(screenplay: &str) -> String {
     println!("Parsing the following Fountain doc:\n{}", screenplay);
 
     // Write to String buffer.
-    match fountain::parse_document::<(&str, _)>(&screenplay) {
+    match fountain::parse_document::<(&str, _)>(screenplay) {
         Err(e) => format!(
             "\
 <h1 class='fountain-parse-error-title'>Error</h1>

@@ -2,12 +2,7 @@ pub fn position_before<T, P>(slice: &[T], end: usize, predicate: P) -> Option<us
 where
     P: Fn(&T) -> bool,
 {
-    for i in (0..end).rev() {
-        if predicate(&slice[i]) {
-            return Some(i);
-        }
-    }
-    None
+    (0..end).rev().find(|&i| predicate(&slice[i]))
 }
 
 pub fn position_after<T, P>(slice: &[T], start: usize, predicate: P) -> Option<usize>
